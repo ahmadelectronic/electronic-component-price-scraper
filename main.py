@@ -119,11 +119,15 @@ df.to_excel(OUTPUT_EXCEL, index=False)
 
 
 # -------------------------------
-# Make Link column clickable
+# Edit Excel file
 # -------------------------------
 wb = load_workbook(OUTPUT_EXCEL)
 ws = wb.active
 
+
+# -------------------------------
+# Make Link column clickable
+# -------------------------------
 link_col = None
 
 for cell in ws[1]:
@@ -139,6 +143,35 @@ if link_col:
         if link:
             cell.hyperlink = str(link)
             cell.style = "Hyperlink"
+
+
+# -------------------------------
+# Add Grand Total row
+# -------------------------------
+total_col = None
+
+for cell in ws[1]:
+    if cell.value == "Total Price":
+        total_col = cell.column
+        break
+
+if total_col:
+    grand_total = 0
+
+    for row in range(2, ws.max_row + 1):
+        value = ws.cell(row=row, column=total_col).value
+
+        if value:
+            try:
+                grand_total += float(value)
+            except:
+                pass
+
+    # Add total at bottom
+    last_row = ws.max_row + 1
+
+    ws.cell(row=last_row, column=total_col - 1).value = "Grand Total"
+    ws.cell(row=last_row, column=total_col).value = grand_total
 
 
 # Save workbook
