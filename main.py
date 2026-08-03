@@ -1,5 +1,7 @@
 import os
 import re
+import platform
+import subprocess
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
@@ -59,7 +61,7 @@ for link in df["Link"]:
         if "ریال" in text or "تومان" in text:
             status.append("OK")
 
-            # Extract the first price before ریال or تومان
+            # Extract first price before ریال or تومان
             match = re.search(
                 r'([\d۰-۹]{1,3}(?:[,٬][\d۰-۹]{3})*|[\d۰-۹]+)\s*(?:ریال|تومان)',
                 text
@@ -80,7 +82,7 @@ for link in df["Link"]:
         status.append("ERROR")
         prices.append("")
 
-# Add new columns to DataFrame
+# Add new columns
 df["Content"] = contents
 df["Status"] = status
 df["Price"] = prices
@@ -94,26 +96,40 @@ df.to_excel(OUTPUT_EXCEL, index=False)
 wb = load_workbook(OUTPUT_EXCEL)
 ws = wb.active
 
-# Find the Link column
+# Find Link column
 link_col = None
 for cell in ws[1]:
     if cell.value == "Link":
         link_col = cell.column
         break
 
-# Convert Link values to hyperlinks
+# Add hyperlinks
 if link_col:
     for row in range(2, ws.max_row + 1):
         cell = ws.cell(row=row, column=link_col)
         link = cell.value
 
         if link:
-            # Set hyperlink
             cell.hyperlink = str(link)
-            # Apply Excel hyperlink style
             cell.style = "Hyperlink"
 
 # Save workbook
 wb.save(OUTPUT_EXCEL)
 
 print(f"Done! Output saved to {OUTPUT_EXCEL}")
+
+# -------------------------------
+# Automatically open output.xlsx
+# -------------------------------
+try:
+    if platform.system() == "Windows":
+        os.startfile(OUTPUT_EXCEL)
+
+    elif platform.system() == "Darwin":  # macOS
+        subprocess.call(["open", OUTPUT_EXCEL])
+
+    else:  # Linux
+        subprocess.call(["xdg-open", OUTPUT_EXCEL])
+
+except Exception as e:
+    print(f"Could not open Excel file automatically: {e}")
