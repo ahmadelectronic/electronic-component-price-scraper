@@ -1,4 +1,5 @@
 import os
+import re
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
@@ -19,12 +20,14 @@ if "Link" not in df.columns:
 
 contents = []
 status = []
+prices = []
 
 for link in df["Link"]:
     try:
         if pd.isna(link):
             contents.append("")
             status.append("NO")
+            prices.append("")
             continue
 
         # Read HTML from URL
@@ -51,20 +54,35 @@ for link in df["Link"]:
         # Save extracted text
         contents.append(text)
 
-        # Search for the word "ریال"
-        if "ریال" in text:
+        # Search for currency
+        if "ریال" in text or "تومان" in text:
             status.append("OK")
+
+            # Extract the first price before ریال or تومان
+            match = re.search(
+                r'([\d۰-۹]{1,3}(?:[,٬][\d۰-۹]{3})*|[\d۰-۹]+)\s*(?:ریال|تومان)',
+                text
+            )
+
+            if match:
+                prices.append(match.group(1))
+            else:
+                prices.append("")
+
         else:
             status.append("NO")
+            prices.append("")
 
     except Exception as e:
         print(f"Error processing {link}: {e}")
         contents.append(f"ERROR: {e}")
         status.append("ERROR")
+        prices.append("")
 
 # Add new columns to DataFrame
 df["Content"] = contents
 df["Status"] = status
+df["Price"] = prices
 
 # Save results
 df.to_excel(OUTPUT_EXCEL, index=False)
