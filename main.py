@@ -17,20 +17,25 @@ df = pd.read_excel(INPUT_EXCEL)
 # Remove extra spaces from column names
 df.columns = df.columns.str.strip()
 
-# Check if Link column exists
+# Check required columns
 if "Link" not in df.columns:
-    raise ValueError(f"Excel file must contain a 'Link' column. Found columns: {list(df.columns)}")
+    raise ValueError(f"Excel file must contain 'Link' column. Found: {list(df.columns)}")
+
+if "Quantity" not in df.columns:
+    raise ValueError(f"Excel file must contain 'Quantity' column. Found: {list(df.columns)}")
 
 contents = []
 status = []
 prices = []
+total_prices = []
 
-for link in df["Link"]:
+for index, link in enumerate(df["Link"]):
     try:
         if pd.isna(link):
             contents.append("")
             status.append("NO")
             prices.append("")
+            total_prices.append("")
             continue
 
         # Read HTML from URL
@@ -54,41 +59,64 @@ for link in df["Link"]:
         # Extract visible text
         text = soup.get_text(separator=" ", strip=True)
 
-        # Save extracted text
         contents.append(text)
 
-        # Search for currency
+        # Search currency
         if "ریال" in text or "تومان" in text:
             status.append("OK")
 
-            # Extract first price before ریال or تومان
+            # Find price
             match = re.search(
                 r'([\d۰-۹]{1,3}(?:[,٬][\d۰-۹]{3})*|[\d۰-۹]+)\s*(?:ریال|تومان)',
                 text
             )
 
             if match:
-                prices.append(match.group(1))
+                price = match.group(1)
+
+                # Convert Persian numbers and remove separators
+                price = price.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹", "0123456789"))
+                price = price.replace(",", "").replace("٬", "")
+
+                prices.append(price)
+
+                # Get quantity
+                quantity = df.loc[index, "Quantity"]
+
+                if pd.isna(quantity):
+                    quantity = 1
+
+                # Calculate total price
+                total = float(price) * float(quantity)
+                total_prices.append(total)
+
             else:
                 prices.append("")
+                total_prices.append("")
 
         else:
             status.append("NO")
             prices.append("")
+            total_prices.append("")
 
     except Exception as e:
         print(f"Error processing {link}: {e}")
         contents.append(f"ERROR: {e}")
         status.append("ERROR")
         prices.append("")
+        total_prices.append("")
+
 
 # Add new columns
 df["Content"] = contents
 df["Status"] = status
 df["Price"] = prices
+df["Total Price"] = total_prices
 
-# Save DataFrame to Excel
+
+# Save DataFrame
 df.to_excel(OUTPUT_EXCEL, index=False)
+
 
 # -------------------------------
 # Make Link column clickable
@@ -96,14 +124,13 @@ df.to_excel(OUTPUT_EXCEL, index=False)
 wb = load_workbook(OUTPUT_EXCEL)
 ws = wb.active
 
-# Find Link column
 link_col = None
+
 for cell in ws[1]:
     if cell.value == "Link":
         link_col = cell.column
         break
 
-# Add hyperlinks
 if link_col:
     for row in range(2, ws.max_row + 1):
         cell = ws.cell(row=row, column=link_col)
@@ -113,10 +140,12 @@ if link_col:
             cell.hyperlink = str(link)
             cell.style = "Hyperlink"
 
+
 # Save workbook
 wb.save(OUTPUT_EXCEL)
 
 print(f"Done! Output saved to {OUTPUT_EXCEL}")
+
 
 # -------------------------------
 # Automatically open output.xlsx
@@ -125,10 +154,10 @@ try:
     if platform.system() == "Windows":
         os.startfile(OUTPUT_EXCEL)
 
-    elif platform.system() == "Darwin":  # macOS
+    elif platform.system() == "Darwin":
         subprocess.call(["open", OUTPUT_EXCEL])
 
-    else:  # Linux
+    else:
         subprocess.call(["xdg-open", OUTPUT_EXCEL])
 
 except Exception as e:
