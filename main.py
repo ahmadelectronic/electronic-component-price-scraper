@@ -51,8 +51,8 @@ for link in df["Link"]:
         # Save extracted text
         contents.append(text)
 
-        # Search for the word "ریال" 
-        if "ریال" or "تومان" in text:
+        # Search for the word "ریال"
+        if "ریال" in text:
             status.append("OK")
         else:
             status.append("NO")
