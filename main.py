@@ -3,6 +3,7 @@ import re
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
+from openpyxl import load_workbook
 
 # Input and output Excel files
 INPUT_EXCEL = "database.xlsx"
@@ -84,7 +85,35 @@ df["Content"] = contents
 df["Status"] = status
 df["Price"] = prices
 
-# Save results
+# Save DataFrame to Excel
 df.to_excel(OUTPUT_EXCEL, index=False)
+
+# -------------------------------
+# Make Link column clickable
+# -------------------------------
+wb = load_workbook(OUTPUT_EXCEL)
+ws = wb.active
+
+# Find the Link column
+link_col = None
+for cell in ws[1]:
+    if cell.value == "Link":
+        link_col = cell.column
+        break
+
+# Convert Link values to hyperlinks
+if link_col:
+    for row in range(2, ws.max_row + 1):
+        cell = ws.cell(row=row, column=link_col)
+        link = cell.value
+
+        if link:
+            # Set hyperlink
+            cell.hyperlink = str(link)
+            # Apply Excel hyperlink style
+            cell.style = "Hyperlink"
+
+# Save workbook
+wb.save(OUTPUT_EXCEL)
 
 print(f"Done! Output saved to {OUTPUT_EXCEL}")
