@@ -94,35 +94,39 @@ for index, link in enumerate(df["Link"]):
             status.append("OK")
 
 
-            match = re.search(
-                r'([\d۰-۹]{1,3}(?:[,٬][\d۰-۹]{3})*|[\d۰-۹]+)\s*(?:ریال|تومان)',
-                text
-            )
-
+            match = re.search(r'([\d۰-۹]{1,3}(?:[,٬][\d۰-۹]{3})*|[\d۰-۹]+)\s*(ریال|تومان)',text)
 
             if match:
 
+                # Extract price and currency
                 price = match.group(1)
+                currency = match.group(2)
 
+                # Convert Persian digits to English
                 price = price.translate(
                     str.maketrans("۰۱۲۳۴۵۶۷۸۹", "0123456789")
                 )
 
+                # Remove thousand separators
                 price = price.replace(",", "").replace("٬", "")
 
+                price = float(price)
 
-                prices.append(price)
+                # Convert Toman to Rial
+                if currency == "تومان":
+                    price *= 10
 
+                # Save price as integer (Rial)
+                prices.append(int(price))
 
+                # Read quantity
                 quantity = df.loc[index, "Quantity"]
 
                 if pd.isna(quantity):
                     quantity = 1
 
-
-                total_prices.append(
-                    float(price) * float(quantity)
-                )
+                # Calculate total price
+                total_prices.append(int(price * float(quantity)))
 
 
             else:
