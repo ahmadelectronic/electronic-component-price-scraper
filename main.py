@@ -371,7 +371,32 @@ if total_col:
 
     ws.cell(row=last_row, column=total_col).value = grand_total
 
+# -------------------------------
+# Format Price columns with comma
+# -------------------------------
 
+price_col = None
+total_price_col = None
+
+for cell in ws[1]:
+
+    if cell.value == "Price":
+        price_col = cell.column
+
+    if cell.value == "Total Price":
+        total_price_col = cell.column
+
+
+if price_col:
+
+    for row in range(2, ws.max_row + 1):
+        ws.cell(row=row, column=price_col).number_format = '#,##0'
+
+
+if total_price_col:
+
+    for row in range(2, ws.max_row + 1):
+        ws.cell(row=row, column=total_price_col).number_format = '#,##0'
 
 # Save final workbook
 wb.save(OUTPUT_EXCEL)
