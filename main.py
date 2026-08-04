@@ -7,6 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
+from urllib.parse import urlparse
 
 
 # Input and output Excel files
@@ -251,6 +252,62 @@ if status_col:
 
         elif status_cell.value in ["NO", "ERROR"]:
             status_cell.fill = red_fill
+
+# -------------------------------
+# Color Link column by website
+# -------------------------------
+
+from urllib.parse import urlparse
+
+site_colors = {}
+
+colors = [
+    "D9D2E9",  # Purple
+    "CFE2F3",  # Light Blue
+    "FCE5CD",  # Orange
+    "FFF2CC",  # Yellow
+    "D0E0E3",  # Gray Blue
+    "EAD1DC",  # Pink Purple
+    "B6D7A8",  # Light Green
+    "F4CCCC",  # Soft Pink
+    "C9DAF8",  # Sky Blue
+    "FFD966",  # Gold
+    "B4A7D6",  # Violet
+    "A2C4C9"   # Teal
+]
+
+if link_col:
+
+    color_index = 0
+
+    for row in range(2, ws.max_row + 1):
+
+        link_cell = ws.cell(row=row, column=link_col)
+
+        if link_cell.value:
+
+            try:
+                domain = urlparse(str(link_cell.value)).netloc
+
+                # remove www.
+                domain = domain.replace("www.", "")
+
+                if domain not in site_colors:
+
+                    site_colors[domain] = PatternFill(
+                        start_color=colors[color_index % len(colors)],
+                        end_color=colors[color_index % len(colors)],
+                        fill_type="solid"
+                    )
+
+                    color_index += 1
+
+
+                # Color only Link cell
+                link_cell.fill = site_colors[domain]
+
+            except:
+                pass
 # -------------------------------
 # Add Grand Total
 # -------------------------------
