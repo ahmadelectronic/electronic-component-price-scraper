@@ -94,7 +94,25 @@ for index, link in enumerate(df["Link"]):
             status.append("OK")
 
 
-            match = re.search(r'([\d۰-۹]{1,3}(?:[,٬][\d۰-۹]{3})*|[\d۰-۹]+)\s*(ریال|تومان)',text)
+            # First, try to get the price from the Twitter meta tag
+            match = None
+
+            meta_price = soup.find("meta", attrs={"name": "twitter:data1"})
+
+            if meta_price:
+                price_text = meta_price.get("content", "")
+                price_text = price_text.replace("\xa0", " ")
+
+                match = re.search(r'([\d۰-۹,٬,]+)\s*(ریال|تومان)',
+                    price_text
+                )
+
+            # If not found, search the page text as before
+            if not match:
+                match = re.search(
+                    r'([\d۰-۹]{1,3}(?:[,٬][\d۰-۹]{3})*|[\d۰-۹]+)\s*(ریال|تومان)',
+                    text
+                )
 
             if match:
 
@@ -201,18 +219,15 @@ if link_col:
 
 
 # -------------------------------
-# Color rows by Status
+# Color Status column only
 # -------------------------------
 
 status_col = None
 
 for cell in ws[1]:
-
     if cell.value == "Status":
         status_col = cell.column
         break
-
-
 
 green_fill = PatternFill(
     start_color="C6EFCE",
@@ -220,35 +235,22 @@ green_fill = PatternFill(
     fill_type="solid"
 )
 
-
 red_fill = PatternFill(
     start_color="FFC7CE",
     end_color="FFC7CE",
     fill_type="solid"
 )
 
-
-
 if status_col:
-
     for row in range(2, ws.max_row + 1):
 
-        status_value = ws.cell(row=row, column=status_col).value
+        status_cell = ws.cell(row=row, column=status_col)
 
+        if status_cell.value == "OK":
+            status_cell.fill = green_fill
 
-        if status_value == "OK":
-
-            for col in range(1, ws.max_column + 1):
-                ws.cell(row=row, column=col).fill = green_fill
-
-
-        elif status_value in ["NO", "ERROR"]:
-
-            for col in range(1, ws.max_column + 1):
-                ws.cell(row=row, column=col).fill = red_fill
-
-
-
+        elif status_cell.value in ["NO", "ERROR"]:
+            status_cell.fill = red_fill
 # -------------------------------
 # Add Grand Total
 # -------------------------------
