@@ -90,21 +90,40 @@ for index, link in enumerate(df["Link"]):
 
 
         # Search price
-        if "ریال" in text or "تومان" in text:
+        meta_price_check = soup.find("meta", attrs={"name": "price"})
+
+        if "ریال" in text or "تومان" in text or meta_price_check:
 
             status.append("OK")
 
 
-            # First, try to get the price from the Twitter meta tag
+            # First, try to get price from meta tags
             match = None
 
+            # twitter:data1
             meta_price = soup.find("meta", attrs={"name": "twitter:data1"})
 
-            if meta_price:
+            # name="price"
+            price_meta = soup.find("meta", attrs={"name": "price"})
+
+
+            if price_meta:
+
+                # Example:
+                # <meta name='price' content='683000' />
+
+                price_text = price_meta.get("content", "")
+
+                match = (price_text, "ریال")
+
+
+            elif meta_price:
+
                 price_text = meta_price.get("content", "")
                 price_text = price_text.replace("\xa0", " ")
 
-                match = re.search(r'([\d۰-۹,٬,]+)\s*(ریال|تومان)',
+                match = re.search(
+                    r'([\d۰-۹,٬]+)\s*(ریال|تومان)',
                     price_text
                 )
 
@@ -117,9 +136,12 @@ for index, link in enumerate(df["Link"]):
 
             if match:
 
-                # Extract price and currency
-                price = match.group(1)
-                currency = match.group(2)
+                if isinstance(match, tuple):
+                    price = match[0]
+                    currency = match[1]
+                else:
+                    price = match.group(1)
+                    currency = match.group(2)
 
                 # Convert Persian digits to English
                 price = price.translate(
