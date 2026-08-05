@@ -49,7 +49,7 @@ def get_page(url):
     }
 
 
-    for attempt in range(3):
+    for attempt in range(2):
 
         try:
 
@@ -59,25 +59,21 @@ def get_page(url):
                 timeout=30
             )
 
-
             response.raise_for_status()
-
 
             return response.text
 
 
         except Exception as e:
 
-
             print(
-                f"Attempt {attempt+1}/3 failed: {url}"
+                f"Attempt {attempt+1}/2 failed: {url}"
             )
 
 
-            if attempt < 2:
+            if attempt < 1:
 
                 time.sleep(3)
-
 
             else:
 
