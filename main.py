@@ -33,6 +33,169 @@ status = []
 prices = []
 total_prices = []
 
+def find_price(soup, text):
+
+    selectors = [
+        ("meta", {"name": "price"}, "content"),
+        ("meta", {"name": "twitter:data1"}, "content"),
+        ("meta", {"property": "product:price:amount"}, "content"),
+        ("meta", {"property": "og:price:amount"}, "content"),
+
+        ("span", {"itemprop": "price"}, "content"),
+        ("span", {"itemprop": "price"}, None),
+
+        ("span", {"class": "price"}, None),
+        ("span", {"class": "old-prices"}, None),
+        ("span", {"class": "new-price"}, None),
+        ("div", {"class": "current-price"}, None),
+        ("div", {"class": "setak-price-amount"}, None),
+        ("div", {"id": "setak-price-display"}, None),
+        ("p", {"class": "price"}, None),
+        ("ins", {}, None),
+        ("bdi", {}, None),
+        ("meta", {"itemprop": "price"}, "content"),
+        ("meta", {"property": "product:price"}, "content"),
+        ("meta", {"property": "product:price:currency"}, "content"),
+
+        ("div", {"class": "price"}, None),
+        ("div", {"class": "product-price"}, None),
+        ("div", {"class": "woocommerce-Price-amount"}, None),
+
+        ("strong", {"class": "price"}, None),
+        ("h2", {}, None),
+        ("h3", {}, None),
+    ]
+
+    # Search all matching elements
+    for tag, attrs, attribute in selectors:
+
+        for element in soup.find_all(tag, attrs=attrs):
+
+            if attribute:
+                price_text = element.get(attribute, "")
+            else:
+                price_text = " ".join(element.stripped_strings)
+
+            if not price_text:
+                continue
+
+            price_text = price_text.replace("\xa0", " ")
+
+            m = re.search(
+                r'([\d۰-۹][\d۰-۹,٬]*)\D*(ریال|تومان)',
+                price_text
+            )
+
+            if m:
+                return m.group(1), m.group(2)
+
+            # Meta tags that contain only numbers
+            m = re.search(r'[\d۰-۹][\d۰-۹,٬]*', price_text)
+
+            if m:
+                currency = "تومان" if "تومان" in price_text else "ریال"
+                return m.group(), currency
+
+    # Search every element on page
+    for element in soup.find_all():
+
+        price_text = " ".join(element.stripped_strings)
+
+        m = re.search(
+            r'([\d۰-۹][\d۰-۹,٬]*)\D*(ریال|تومان)',
+            price_text
+        )
+
+        if m:
+            return m.group(1), m.group(2)
+    # -------- More HTML patterns --------
+
+    # itemprop="price"
+    element = soup.select_one('[itemprop="price"]')
+    if element:
+        price = element.get("content") or element.get_text(" ", strip=True)
+        if price:
+            m = re.search(r'[\d۰-۹][\d۰-۹,٬.]*', price)
+            if m:
+                currency = "تومان" if "تومان" in price else "ریال"
+                return m.group(), currency
+
+    # Any element with class containing "price"
+    for element in soup.select('[class*="price"]'):
+        txt = element.get_text(" ", strip=True)
+        if txt:
+            m = re.search(r'([\d۰-۹][\d۰-۹,٬.]*)\s*(ریال|تومان)?', txt)
+            if m:
+                currency = m.group(2) if m.group(2) else ("تومان" if "تومان" in txt else "ریال")
+                return m.group(1), currency
+
+    # data-price attributes
+    for attr in ["data-price", "data-product-price", "price", "content"]:
+        element = soup.find(attrs={attr: True})
+        if element:
+            value = element.get(attr)
+            if value:
+                m = re.search(r'[\d۰-۹][\d۰-۹,٬.]*', value)
+                if m:
+                    return m.group(), "ریال"
+
+    # JSON-LD Product price
+    for script in soup.find_all("script", type="application/ld+json"):
+        try:
+            import json
+            data = json.loads(script.string)
+
+            def search_price(obj):
+                if isinstance(obj, dict):
+                    if "price" in obj:
+                        return str(obj["price"])
+                    for v in obj.values():
+                        r = search_price(v)
+                        if r:
+                            return r
+                elif isinstance(obj, list):
+                    for item in obj:
+                        r = search_price(item)
+                        if r:
+                            return r
+                return None
+
+            price = search_price(data)
+            if price:
+                m = re.search(r'[\d۰-۹][\d۰-۹,٬.]*', price)
+                if m:
+                    return m.group(), "ریال"
+
+        except:
+            pass
+
+    # OpenGraph price
+    element = soup.find("meta", property="product:price:amount")
+    if element:
+        return element.get("content"), "ریال"
+
+    element = soup.find("meta", property="og:price:amount")
+    if element:
+        return element.get("content"), "ریال"
+
+    # Twitter price
+    element = soup.find("meta", attrs={"name": "twitter:data1"})
+    if element:
+        txt = element.get("content", "")
+        m = re.search(r'[\d۰-۹][\d۰-۹,٬.]*', txt)
+        if m:
+            currency = "تومان" if "تومان" in txt else "ریال"
+            return m.group(), currency
+    # Final fallback: search whole page text
+    m = re.search(
+        r'([\d۰-۹][\d۰-۹,٬]*)\D*(ریال|تومان)',
+        text
+    )
+
+    if m:
+        return m.group(1), m.group(2)
+
+    return None
 
 for index, link in enumerate(df["Link"]):
 
@@ -88,119 +251,40 @@ for index, link in enumerate(df["Link"]):
         contents.append(text)
 
 
+        match = find_price(soup, text)
 
-        # Search price
-        meta_price_check = soup.find("meta", attrs={"name": "price"})
-
-        if "ریال" in text or "تومان" in text or meta_price_check:
+        if match:
 
             status.append("OK")
 
+            price = match[0]
+            currency = match[1]
 
-            # First, try to get price from meta tags
-            match = None
+            price = price.translate(
+                str.maketrans("۰۱۲۳۴۵۶۷۸۹", "0123456789")
+            )
 
-            # twitter:data1
-            meta_price = soup.find("meta", attrs={"name": "twitter:data1"})
+            price = price.replace(",", "").replace("٬", "")
 
-            # <meta name="price" content="683000">
-            price_meta = soup.find("meta", attrs={"name": "price"})
+            price = float(price)
 
-            # <span itemprop="price" content="11477000">
-            itemprop_price = soup.find(attrs={"itemprop": "price"})
+            if currency == "تومان":
+                price *= 10
 
-            #suport <div class="current-price"><span class="price" itemprop="price" content="11477000">11,477,000 ریال</span>
-            if price_meta:
+            prices.append(int(price))
 
-                price_text = price_meta.get("content", "")
-                match = (price_text, "ریال")
+            quantity = df.loc[index, "Quantity"]
 
-            elif itemprop_price:
+            if pd.isna(quantity):
+                quantity = 1
 
-                # First try the content attribute
-                price_text = itemprop_price.get("content", "")
-
-                if not price_text:
-                    # Otherwise use the visible text
-                    price_text = itemprop_price.get_text(" ", strip=True)
-
-                # Detect currency
-                if "تومان" in price_text:
-                    currency = "تومان"
-                else:
-                    currency = "ریال"
-
-                numbers = re.search(r'[\d۰-۹,٬]+', price_text)
-
-                if numbers:
-                    match = (numbers.group(), currency)
-
-            elif meta_price:
-
-                price_text = meta_price.get("content", "")
-                price_text = price_text.replace("\xa0", " ")
-
-                match = re.search(
-                    r'([\d۰-۹,٬]+)\s*(ریال|تومان)',
-                    price_text
-                )
-
-            # If not found, search the page text as before
-            if not match:
-                match = re.search(
-                    r'([\d۰-۹]{1,3}(?:[,٬][\d۰-۹]{3})*|[\d۰-۹]+)\s*(ریال|تومان)',
-                    text
-                )
-
-            if match:
-
-                if isinstance(match, tuple):
-                    price = match[0]
-                    currency = match[1]
-                else:
-                    price = match.group(1)
-                    currency = match.group(2)
-
-                # Convert Persian digits to English
-                price = price.translate(
-                    str.maketrans("۰۱۲۳۴۵۶۷۸۹", "0123456789")
-                )
-
-                # Remove thousand separators
-                price = price.replace(",", "").replace("٬", "")
-
-                price = float(price)
-
-                # Convert Toman to Rial
-                if currency == "تومان":
-                    price *= 10
-
-                # Save price as integer (Rial)
-                prices.append(int(price))
-
-                # Read quantity
-                quantity = df.loc[index, "Quantity"]
-
-                if pd.isna(quantity):
-                    quantity = 1
-
-                # Calculate total price
-                total_prices.append(int(price * float(quantity)))
-
-
-            else:
-
-                prices.append("")
-                total_prices.append("")
-
-
+            total_prices.append(int(price * float(quantity)))
 
         else:
 
             status.append("NO")
             prices.append("")
             total_prices.append("")
-
 
 
     except Exception as e:
