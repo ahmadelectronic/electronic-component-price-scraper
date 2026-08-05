@@ -2,13 +2,13 @@ import os
 import re
 import platform
 import subprocess
+import time
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 from urllib.parse import urlparse
-
 
 # Input and output Excel files
 INPUT_EXCEL = "database.xlsx"
@@ -33,6 +33,56 @@ status = []
 prices = []
 total_prices = []
 
+def get_page(url):
+
+    headers = {
+        "User-Agent": 
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 "
+        "Chrome/120.0 Safari/537.36",
+
+        "Accept":
+        "text/html,application/xhtml+xml",
+
+        "Accept-Language":
+        "en-US,en;q=0.9"
+    }
+
+
+    for attempt in range(3):
+
+        try:
+
+            response = requests.get(
+                url,
+                headers=headers,
+                timeout=30
+            )
+
+
+            response.raise_for_status()
+
+
+            return response.text
+
+
+        except Exception as e:
+
+
+            print(
+                f"Attempt {attempt+1}/3 failed: {url}"
+            )
+
+
+            if attempt < 2:
+
+                time.sleep(3)
+
+
+            else:
+
+                raise e
+            
 def find_price(soup, text):
 
     selectors = [
@@ -220,15 +270,7 @@ for index, link in enumerate(df["Link"]):
                 "Accept-Language": "en-US,en;q=0.9"
             }
 
-            response = requests.get(
-                link,
-                headers=headers,
-                timeout=30
-            )
-
-            response.raise_for_status()
-            html = response.text
-
+            html = get_page(link)
 
         else:
 
