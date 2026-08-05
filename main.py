@@ -101,7 +101,7 @@ def find_price(soup, text):
         ("bdi", {}, None),
         ("meta", {"itemprop": "price"}, "content"),
         ("meta", {"property": "product:price"}, "content"),
-        ("meta", {"property": "product:price:currency"}, "content"),
+  
 
         ("div", {"class": "price"}, None),
         ("div", {"class": "product-price"}, None),
