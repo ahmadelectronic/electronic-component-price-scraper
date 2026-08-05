@@ -197,12 +197,10 @@ for index, link in enumerate(df["Link"]):
 
 
 # Add columns
-df["Content"] = contents
+# df["Content"] = contents   # Don't save this column
 df["Status"] = status
 df["Price"] = prices
 df["Total Price"] = total_prices
-
-
 
 # Save Excel
 df.to_excel(OUTPUT_EXCEL, index=False)
