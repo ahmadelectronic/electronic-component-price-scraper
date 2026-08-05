@@ -87,7 +87,7 @@ def find_price(soup, text):
         ("meta", {"property": "product:price:amount"}, "content"),
         ("meta", {"property": "og:price:amount"}, "content"),
 
-        ("span", {"itemprop": "price"}, "content"),
+        ("span", {"itemprop": "price"}, None),
         ("span", {"itemprop": "price"}, None),
 
         ("span", {"class": "price"}, None),
@@ -119,6 +119,16 @@ def find_price(soup, text):
 
             if attribute:
                 price_text = element.get(attribute, "")
+
+                # Also check visible text for currency
+                visible_text = " ".join(element.stripped_strings)
+
+                if "تومان" in visible_text:
+                    price_text += " تومان"
+
+                elif "ریال" in visible_text:
+                    price_text += " ریال"
+
             else:
                 price_text = " ".join(element.stripped_strings)
 
