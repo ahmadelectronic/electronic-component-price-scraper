@@ -103,19 +103,37 @@ for index, link in enumerate(df["Link"]):
             # twitter:data1
             meta_price = soup.find("meta", attrs={"name": "twitter:data1"})
 
-            # name="price"
+            # <meta name="price" content="683000">
             price_meta = soup.find("meta", attrs={"name": "price"})
 
+            # <span itemprop="price" content="11477000">
+            itemprop_price = soup.find(attrs={"itemprop": "price"})
 
+            #suport <div class="current-price"><span class="price" itemprop="price" content="11477000">11,477,000 ریال</span>
             if price_meta:
 
-                # Example:
-                # <meta name='price' content='683000' />
-
                 price_text = price_meta.get("content", "")
-
                 match = (price_text, "ریال")
 
+            elif itemprop_price:
+
+                # First try the content attribute
+                price_text = itemprop_price.get("content", "")
+
+                if not price_text:
+                    # Otherwise use the visible text
+                    price_text = itemprop_price.get_text(" ", strip=True)
+
+                # Detect currency
+                if "تومان" in price_text:
+                    currency = "تومان"
+                else:
+                    currency = "ریال"
+
+                numbers = re.search(r'[\d۰-۹,٬]+', price_text)
+
+                if numbers:
+                    match = (numbers.group(), currency)
 
             elif meta_price:
 
