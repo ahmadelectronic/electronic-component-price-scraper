@@ -82,14 +82,13 @@ def get_page(url):
 def find_price(soup, text):
 
     selectors = [
-
+        ("span", {"class": "price"}, None),
         ("span", {"itemprop": "price"}, None),
         ("meta", {"name": "price"}, "content"),
         ("meta", {"name": "twitter:data1"}, "content"),
         ("meta", {"property": "product:price:amount"}, "content"),
         ("meta", {"property": "og:price:amount"}, "content"),
 
-        ("span", {"class": "price"}, None),
         ("span", {"class": "old-prices"}, None),
         ("span", {"class": "new-price"}, None),
         ("div", {"class": "current-price"}, None),
@@ -203,14 +202,26 @@ def find_price(soup, text):
                 return m.group(1), currency
 
     # data-price attributes
-    for attr in ["data-price", "data-product-price", "price", "content"]:
+    for attr in ["data-price-amount","data-price","data-product-price","price","content"]:
         element = soup.find(attrs={attr: True})
         if element:
             value = element.get(attr)
             if value:
                 m = re.search(r'[\d۰-۹][\d۰-۹,٬.]*', value)
                 if m:
-                    return m.group(), "ریال"
+
+                    parent_text = element.get_text(" ", strip=True)
+
+                    if "تومان" in parent_text:
+                        currency = "تومان"
+
+                    elif "ریال" in parent_text:
+                        currency = "ریال"
+
+                    else:
+                        currency = "ریال"
+
+                    return m.group(), currency
 
     # JSON-LD Product price
     for script in soup.find_all("script", type="application/ld+json"):
