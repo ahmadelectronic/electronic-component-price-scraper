@@ -82,13 +82,12 @@ def get_page(url):
 def find_price(soup, text):
 
     selectors = [
+
+        ("span", {"itemprop": "price"}, None),
         ("meta", {"name": "price"}, "content"),
         ("meta", {"name": "twitter:data1"}, "content"),
         ("meta", {"property": "product:price:amount"}, "content"),
         ("meta", {"property": "og:price:amount"}, "content"),
-
-        ("span", {"itemprop": "price"}, None),
-        ("span", {"itemprop": "price"}, None),
 
         ("span", {"class": "price"}, None),
         ("span", {"class": "old-prices"}, None),
@@ -168,13 +167,31 @@ def find_price(soup, text):
 
     # itemprop="price"
     element = soup.select_one('[itemprop="price"]')
+
     if element:
-        price = element.get("content") or element.get_text(" ", strip=True)
-        if price:
-            m = re.search(r'[\d۰-۹][\d۰-۹,٬.]*', price)
-            if m:
-                currency = "تومان" if "تومان" in price else "ریال"
-                return m.group(), currency
+
+        content_price = element.get("content", "")
+        visible_price = element.get_text(" ", strip=True)
+
+        price = content_price or visible_price
+
+        m = re.search(
+            r'[\d۰-۹][\d۰-۹,٬.]*',
+            price
+        )
+
+        if m:
+
+            if "تومان" in visible_price:
+                currency = "تومان"
+
+            elif "ریال" in visible_price:
+                currency = "ریال"
+
+            else:
+                currency = "ریال"
+
+            return m.group(), currency
 
     # Any element with class containing "price"
     for element in soup.select('[class*="price"]'):
