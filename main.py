@@ -110,6 +110,49 @@ def find_price(soup, text):
         ("h3", {}, None),
     ]
 
+    # shop.qom-elec.ir style
+    element = soup.find("div", id="setak-price-display")
+
+    if element:
+
+        txt = element.get_text(" ", strip=True)
+
+        m = re.search(r'[\d۰-۹][\d۰-۹,٬.]*', txt)
+
+        if m:
+
+            currency = "ریال"
+
+            # Check SVG icon
+            use = element.find("use")
+
+            if use:
+                href = (use.get("href") or use.get("xlink:href") or "").lower()
+
+                if "#toman" in href:
+                    currency = "تومان"
+
+                elif "#rial" in href:
+                    currency = "ریال"
+
+            return m.group(), currency
+    # bahar-enclosure style
+    element = soup.select_one(
+        "span.woocommerce-Price-amount"
+    )
+
+    if element:
+
+        txt = element.get_text(" ", strip=True)
+
+        m = re.search(
+            r'([\d۰-۹,٬]+)\s*(ریال|تومان)',
+            txt
+        )
+
+        if m:
+            return m.group(1), m.group(2)
+    
     #buybestelectronic style
     for element in soup.find_all(
         class_=lambda c: c and "new-price" in c
