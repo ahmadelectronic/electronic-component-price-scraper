@@ -235,9 +235,22 @@ def find_price(soup, text):
         if m:
             return m.group(1), "ریال"
 
+    # thecaferobot
+    element = soup.select_one(".price-wrapper .price")
 
-    
-    return None
+    if element:
+
+        txt = element.get_text(" ", strip=True)
+
+        m = re.search(
+            r'([\d۰-۹,٬]+)\s*(ریال|تومان)',
+            txt
+        )
+
+        if m:
+            return m.group(1), m.group(2)
+        
+        return None
 
 for index, link in enumerate(df["Link"]):
 
