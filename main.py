@@ -347,7 +347,26 @@ def find_price(soup, text):
 
             return price, currency
 
-        
+    # https://skytech.ir/ style
+
+    element = soup.select_one(
+        "div.prod_price span.price"
+    )
+
+    if element:
+
+        txt = element.get_text(" ", strip=True)
+
+        m = re.search(
+            r'([\d۰-۹,٬.]+)\s*(ریال|تومان)',
+            txt
+        )
+
+        if m:
+            return m.group(1), m.group(2)
+
+
+       
     return None
 
 for index, link in enumerate(df["Link"]):
