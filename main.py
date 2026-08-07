@@ -110,6 +110,22 @@ def find_price(soup, text):
         ("h3", {}, None),
     ]
 
+    #buybestelectronic style
+    for element in soup.find_all(
+        class_=lambda c: c and "new-price" in c
+    ):
+
+        txt = element.get_text(" ", strip=True)
+
+        m = re.search(
+            r'([\d۰-۹,٬]+)\s*(ریال|تومان)',
+            txt
+        )
+
+        if m:
+            return m.group(1), m.group(2)
+
+        
     # javanelec style price
     price_box = soup.find(
         lambda tag:
