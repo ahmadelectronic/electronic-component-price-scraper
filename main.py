@@ -81,203 +81,106 @@ def get_page(url):
             
 def find_price(soup, text):
 
-    selectors = [
-        ("span", {"class": "price"}, None),
-        ("span", {"itemprop": "price"}, None),
-        ("meta", {"name": "price"}, "content"),
-        ("meta", {"name": "twitter:data1"}, "content"),
-        ("meta", {"property": "product:price:amount"}, "content"),
-        ("meta", {"property": "og:price:amount"}, "content"),
+    # lionelectronic.com style
 
-        ("span", {"class": "old-prices"}, None),
-        ("span", {"class": "new-price"}, None),
-        ("div", {"class": "current-price"}, None),
-        ("div", {"class": "setak-price-amount"}, None),
-        ("div", {"id": "setak-price-display"}, None),
-        ("p", {"class": "price"}, None),
-        ("ins", {}, None),
-        ("bdi", {}, None),
-        ("meta", {"itemprop": "price"}, "content"),
-        ("meta", {"property": "product:price"}, "content"),
-  
+    for element in soup.find_all(
+        "div",
+        class_=lambda c: c and "price-row" in c
+    ):
 
-        ("div", {"class": "price"}, None),
-        ("div", {"class": "product-price"}, None),
-        ("div", {"class": "woocommerce-Price-amount"}, None),
-
-        ("strong", {"class": "price"}, None),
-        ("h2", {}, None),
-        ("h3", {}, None),
-    ]
-
-    # Search all matching elements
-    for tag, attrs, attribute in selectors:
-
-        for element in soup.find_all(tag, attrs=attrs):
-
-            if attribute:
-                price_text = element.get(attribute, "")
-
-                # Also check visible text for currency
-                visible_text = " ".join(element.stripped_strings)
-
-                if "تومان" in visible_text:
-                    price_text += " تومان"
-
-                elif "ریال" in visible_text:
-                    price_text += " ریال"
-
-            else:
-                price_text = " ".join(element.stripped_strings)
-
-            if not price_text:
-                continue
-
-            price_text = price_text.replace("\xa0", " ")
-
-            m = re.search(
-                r'([\d۰-۹][\d۰-۹,٬]*)\D*(ریال|تومان)',
-                price_text
-            )
-
-            if m:
-                return m.group(1), m.group(2)
-
-            # Meta tags that contain only numbers
-            m = re.search(r'[\d۰-۹][\d۰-۹,٬]*', price_text)
-
-            if m:
-                currency = "تومان" if "تومان" in price_text else "ریال"
-                return m.group(), currency
-
-    # Search every element on page
-    for element in soup.find_all():
-
-        price_text = " ".join(element.stripped_strings)
+        txt = element.parent.get_text(" ", strip=True)
 
         m = re.search(
-            r'([\d۰-۹][\d۰-۹,٬]*)\D*(ریال|تومان)',
-            price_text
+            r'([\d۰-۹,٬.]+)\s*(ریال|تومان)',
+            txt
         )
 
         if m:
             return m.group(1), m.group(2)
-    # -------- More HTML patterns --------
-
-    # itemprop="price"
-    element = soup.select_one('[itemprop="price"]')
+    
+    # qom-elec.ir style
+    element = soup.find("div", id="setak-price-display")
 
     if element:
 
-        content_price = element.get("content", "")
-        visible_price = element.get_text(" ", strip=True)
-
-        price = content_price or visible_price
+        txt = element.get_text(" ", strip=True)
 
         m = re.search(
-            r'[\d۰-۹][\d۰-۹,٬.]*',
-            price
+            r'([\d۰-۹,٬.]+)',
+            txt
         )
 
         if m:
 
-            if "تومان" in visible_price:
-                currency = "تومان"
+            currency = "ریال"   # default
 
-            elif "ریال" in visible_price:
-                currency = "ریال"
+            # SVG currency icon
+            use = element.find("use")
 
-            else:
-                currency = "ریال"
+            if use:
 
-            return m.group(), currency
+                href = (
+                    use.get("href")
+                    or use.get("xlink:href")
+                    or ""
+                ).lower()
 
-    # Any element with class containing "price"
-    for element in soup.select('[class*="price"]'):
-        txt = element.get_text(" ", strip=True)
-        if txt:
-            m = re.search(r'([\d۰-۹][\d۰-۹,٬.]*)\s*(ریال|تومان)?', txt)
-            if m:
-                currency = m.group(2) if m.group(2) else ("تومان" if "تومان" in txt else "ریال")
-                return m.group(1), currency
+                if "toman" in href:
+                    currency = "تومان"
 
-    # data-price attributes
-    for attr in ["data-price-amount","data-price","data-product-price","price","content"]:
-        element = soup.find(attrs={attr: True})
-        if element:
-            value = element.get(attr)
-            if value:
-                m = re.search(r'[\d۰-۹][\d۰-۹,٬.]*', value)
-                if m:
+                elif "rial" in href:
+                    currency = "ریال"
 
-                    parent_text = element.get_text(" ", strip=True)
 
-                    if "تومان" in parent_text:
-                        currency = "تومان"
-
-                    elif "ریال" in parent_text:
-                        currency = "ریال"
-
-                    else:
-                        currency = "ریال"
-
-                    return m.group(), currency
-
-    # JSON-LD Product price
-    for script in soup.find_all("script", type="application/ld+json"):
-        try:
-            import json
-            data = json.loads(script.string)
-
-            def search_price(obj):
-                if isinstance(obj, dict):
-                    if "price" in obj:
-                        return str(obj["price"])
-                    for v in obj.values():
-                        r = search_price(v)
-                        if r:
-                            return r
-                elif isinstance(obj, list):
-                    for item in obj:
-                        r = search_price(item)
-                        if r:
-                            return r
-                return None
-
-            price = search_price(data)
-            if price:
-                m = re.search(r'[\d۰-۹][\d۰-۹,٬.]*', price)
-                if m:
-                    return m.group(), "ریال"
-
-        except:
-            pass
-
-    # OpenGraph price
-    element = soup.find("meta", property="product:price:amount")
-    if element:
-        return element.get("content"), "ریال"
-
-    element = soup.find("meta", property="og:price:amount")
-    if element:
-        return element.get("content"), "ریال"
-
-    # Twitter price
-    element = soup.find("meta", attrs={"name": "twitter:data1"})
-    if element:
-        txt = element.get("content", "")
-        m = re.search(r'[\d۰-۹][\d۰-۹,٬.]*', txt)
-        if m:
-            currency = "تومان" if "تومان" in txt else "ریال"
-            return m.group(), currency
-    # Final fallback: search whole page text
-    m = re.search(
-        r'([\d۰-۹][\d۰-۹,٬]*)\D*(ریال|تومان)',
-        text
+            return m.group(1), currency
+    
+    # bahar-enclosure style
+    element = soup.select_one(
+        "span.woocommerce-Price-amount"
     )
 
-    if m:
-        return m.group(1), m.group(2)
+    if element:
+
+        txt = element.get_text(" ", strip=True)
+
+        m = re.search(
+            r'([\d۰-۹,٬]+)\s*(ریال|تومان)',
+            txt
+        )
+
+        if m:
+            return m.group(1), m.group(2)
+    
+    #buybestelectronic style
+    for element in soup.find_all(
+        class_=lambda c: c and "new-price" in c
+    ):
+
+        txt = element.get_text(" ", strip=True)
+
+        m = re.search(
+            r'([\d۰-۹,٬]+)\s*(ریال|تومان)',
+            txt
+        )
+
+        if m:
+            return m.group(1), m.group(2)
+
+        
+    # javanelec.com style
+
+    for element in soup.find_all("div", class_="flex-align-base"):
+
+        txt = element.get_text(" ", strip=True)
+
+        m = re.search(
+            r'([\d۰-۹,٬]+)\s*(ریال|تومان)',
+            txt
+        )
+
+        if m:
+            return m.group(1), m.group(2)
+    
 
     return None
 
