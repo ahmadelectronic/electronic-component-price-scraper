@@ -110,6 +110,25 @@ def find_price(soup, text):
         ("h3", {}, None),
     ]
 
+    # javanelec style price
+    price_box = soup.find(
+        lambda tag:
+        tag.name in ["div","span"]
+        and "ریال" in tag.get_text()
+    )
+
+    if price_box:
+
+        txt = price_box.get_text(" ", strip=True)
+
+        m = re.search(
+            r'([\d۰-۹,٬]+)\s*(ریال|تومان)',
+            txt
+        )
+
+        if m:
+            return m.group(1), m.group(2)
+    
     # Search all matching elements
     for tag, attrs, attribute in selectors:
 
