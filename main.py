@@ -80,6 +80,34 @@ def get_page(url):
                 raise e
             
 def find_price(soup, text):
+
+    # https://electronic724.com/
+    # electronic724.com
+    element = soup.find(
+        "meta",
+        property="product:price:amount"
+    )
+
+    if element:
+
+        currency = "ریال"
+
+        currency_tag = soup.find(
+            "meta",
+            property="product:price:currency"
+        )
+
+        if currency_tag:
+
+            cur = currency_tag.get("content","").upper()
+
+            if cur == "IRT":
+                currency = "تومان"
+
+            elif cur == "IRR":
+                currency = "ریال"
+
+        return element.get("content"), currency
     # shop.eca.ir style
     element = soup.select_one("span.current-price")
 
@@ -249,8 +277,8 @@ def find_price(soup, text):
 
         if m:
             return m.group(1), m.group(2)
-        
-        return None
+    
+    return None
 
 for index, link in enumerate(df["Link"]):
 
