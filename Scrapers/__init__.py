@@ -17,3 +17,4 @@ from . import jamtronic
 from . import ideaelec
 from . import voltatech
 from . import microele
+from . import arefelectronic

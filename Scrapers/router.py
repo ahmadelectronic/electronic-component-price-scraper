@@ -19,7 +19,8 @@ from . import (
     jamtronic,
     ideaelec,
     voltatech,
-    microele
+    microele,
+    arefelectronic
 )
 
 
@@ -61,8 +62,9 @@ SCRAPERS = {
 
     "voltatech.ir": voltatech.get_price,   
 
-    "microele.com": microele.get_price,   
+    "microele.com": microele.get_price,  
      
+    "arefelectronic.com": arefelectronic.get_price 
 }
 
 
