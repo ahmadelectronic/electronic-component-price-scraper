@@ -81,6 +81,30 @@ def get_page(url):
             
 def find_price(soup, text):
 
+    # https://shop.sisoog.com/ style
+
+    element = soup.select_one(
+        "p.price .woocommerce-Price-amount"
+    )
+
+    if element:
+
+        txt = element.get_text(" ", strip=True)
+
+        m = re.search(
+            r'([\d۰-۹,٬.]+)',
+            txt
+        )
+
+        if m:
+
+            currency = "تومان"
+
+            if "ریال" in txt:
+                currency = "ریال"
+
+            return m.group(1), currency
+
     # https://electronic724.com/ style
     
     element = soup.find(
@@ -285,8 +309,9 @@ def find_price(soup, text):
             return m.group(1), m.group(2)
 
     # https://partelec.ir/
+
     element = soup.select_one(
-        "p.price span.woocommerce-Price-amount"
+        "p.price > span.woocommerce-Price-amount"
     )
 
     if element:
@@ -294,12 +319,18 @@ def find_price(soup, text):
         txt = element.get_text(" ", strip=True)
 
         m = re.search(
-            r'([\d۰-۹,٬.]+)\s*(ریال|تومان)',
+            r'([\d۰-۹,٬.]+)',
             txt
         )
 
         if m:
-            return m.group(1), m.group(2)
+
+            currency = "تومان"
+
+            if "ریال" in txt:
+                currency = "ریال"
+
+            return m.group(1), currency
         
     # https://www.iran-module.ir/ style
 
@@ -383,8 +414,24 @@ def find_price(soup, text):
         if m:
             return m.group(1), m.group(2)
 
+    # https://www.esys.ir/ style
+
+    element = soup.select_one(
+        "#ctl00_ContentPlaceHolder1_lbPrice"
+    )
+
+    if element:
+
+        txt = element.get_text(" ", strip=True)
+
+        m = re.search(
+            r'([\d۰-۹,٬.]+)\s*(ریال|تومان)',
+            txt
+        )
+
+        if m:
+            return m.group(1), m.group(2)
         
-       
     return None
 
 for index, link in enumerate(df["Link"]):
