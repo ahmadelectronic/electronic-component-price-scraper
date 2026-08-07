@@ -81,8 +81,8 @@ def get_page(url):
             
 def find_price(soup, text):
 
-    # https://electronic724.com/
-    # electronic724.com
+    # https://electronic724.com/ style
+    
     element = soup.find(
         "meta",
         property="product:price:amount"
@@ -108,7 +108,9 @@ def find_price(soup, text):
                 currency = "ریال"
 
         return element.get("content"), currency
-    # shop.eca.ir style
+    
+    # https://eshop.eca.ir/ style
+
     element = soup.select_one("span.current-price")
 
     if element:
@@ -145,7 +147,7 @@ def find_price(soup, text):
 
             return m.group(1), currency
 
-    # lionelectronic.com style
+    # https://lionelectronic.ir/ style
 
     for element in soup.find_all(
         "div",
@@ -162,7 +164,8 @@ def find_price(soup, text):
         if m:
             return m.group(1), m.group(2)
     
-    # qom-elec.ir style
+    # https://shop.qom-elec.ir/ style
+
     element = soup.find("div", id="setak-price-display")
 
     if element:
@@ -198,7 +201,8 @@ def find_price(soup, text):
 
             return m.group(1), currency
     
-    # bahar-enclosure style
+    # https://bahar-enclosure.ir/ style
+
     element = soup.select_one(
         "span.woocommerce-Price-amount"
     )
@@ -215,7 +219,8 @@ def find_price(soup, text):
         if m:
             return m.group(1), m.group(2)
     
-    #buybestelectronic style
+    # https://buybestelectronic.com/ style
+
     for element in soup.find_all(
         class_=lambda c: c and "new-price" in c
     ):
@@ -231,7 +236,7 @@ def find_price(soup, text):
             return m.group(1), m.group(2)
 
         
-    # javanelec.com style
+    # https://www.javanelec.com/ style
 
     for element in soup.find_all("div", class_="flex-align-base"):
 
@@ -246,7 +251,7 @@ def find_price(soup, text):
             return m.group(1), m.group(2)
     
 
-    # roboeq.ir style
+    # https://roboeq.ir/ style
 
     for span in soup.find_all(
         "span",
@@ -263,7 +268,8 @@ def find_price(soup, text):
         if m:
             return m.group(1), "ریال"
 
-    # thecaferobot
+    # https://www.thecaferobot.com/ style
+
     element = soup.select_one(".price-wrapper .price")
 
     if element:
