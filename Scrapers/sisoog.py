@@ -2,10 +2,10 @@ import re
 
 
 def get_price(soup):
-    # https://partelec.ir/
+    # https://shop.sisoog.com/ style
 
     element = soup.select_one(
-        "p.price > span.woocommerce-Price-amount"
+        "p.price .woocommerce-Price-amount"
     )
 
     if element:
@@ -25,7 +25,7 @@ def get_price(soup):
                 currency = "ریال"
 
             return m.group(1), currency
-        
+
 
 
     return None

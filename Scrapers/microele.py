@@ -3,14 +3,14 @@ import re
 
 def get_price(soup):
 
-    # https://electronic724.com/ style
-    
     element = soup.find(
         "meta",
         property="product:price:amount"
     )
 
     if element:
+
+        price = element.get("content")
 
         currency = "ریال"
 
@@ -21,7 +21,10 @@ def get_price(soup):
 
         if currency_tag:
 
-            cur = currency_tag.get("content","").upper()
+            cur = currency_tag.get(
+                "content",
+                ""
+            ).upper()
 
             if cur == "IRT":
                 currency = "تومان"
@@ -29,7 +32,6 @@ def get_price(soup):
             elif cur == "IRR":
                 currency = "ریال"
 
-        return element.get("content"), currency
-
+        return price, currency
 
     return None
