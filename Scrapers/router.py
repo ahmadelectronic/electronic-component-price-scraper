@@ -20,7 +20,14 @@ from . import (
     ideaelec,
     voltatech,
     microele,
-    arefelectronic
+    arefelectronic,
+    efarvahar,
+    nemonehsaz,
+    ariabox,
+    bazaarbargh,
+    elecohm,
+    daneshjookit,
+    sparkeyelec
 )
 
 
@@ -64,7 +71,21 @@ SCRAPERS = {
 
     "microele.com": microele.get_price,  
      
-    "arefelectronic.com": arefelectronic.get_price 
+    "arefelectronic.com": arefelectronic.get_price,
+
+    "efarvahar.ir": efarvahar.get_price,
+
+    "nemonehsaz.com": nemonehsaz.get_price,   
+
+    "ariaebox.com": ariabox.get_price,
+    
+    "bazaarbargh.com": bazaarbargh.get_price,
+
+    "elecohm.com": elecohm.get_price,
+
+    "daneshjookit.com": daneshjookit.get_price,
+
+    "sparkeyelec.ir": sparkeyelec.get_price       
 }
 
 
