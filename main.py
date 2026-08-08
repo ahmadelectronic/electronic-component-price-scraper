@@ -411,6 +411,50 @@ if total_price_col:
     for row in range(2, ws.max_row + 1):
         ws.cell(row=row, column=total_price_col).number_format = '#,##0'
 
+
+# -------------------------------
+# Auto width for Price columns
+# -------------------------------
+
+if price_col:
+    max_length = 0
+
+    for row in range(1, ws.max_row + 1):
+        value = ws.cell(row=row, column=price_col).value
+
+        if value is not None:
+            # Format as comma-separated number
+            if isinstance(value, (int, float)):
+                text = f"{int(value):,}"
+            else:
+                text = str(value)
+
+            max_length = max(max_length, len(text))
+
+    ws.column_dimensions[
+        ws.cell(row=1, column=price_col).column_letter
+    ].width = max_length + 2
+
+
+if total_price_col:
+    max_length = 0
+
+    for row in range(1, ws.max_row + 1):
+        value = ws.cell(row=row, column=total_price_col).value
+
+        if value is not None:
+            if isinstance(value, (int, float)):
+                text = f"{int(value):,}"
+            else:
+                text = str(value)
+
+            max_length = max(max_length, len(text))
+
+    ws.column_dimensions[
+        ws.cell(row=1, column=total_price_col).column_letter
+    ].width = max_length + 2
+
+
 # Save final workbook
 wb.save(OUTPUT_EXCEL)
 
