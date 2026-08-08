@@ -78,104 +78,137 @@ def get_page(url):
                 raise e
             
 
-for index, link in enumerate(df["Link"]):
-
+def process_row(index, link):
     try:
-
         if pd.isna(link):
-            contents.append("")
-            status.append("NO")
-            prices.append("")
-            total_prices.append("")
-            continue
-
+            return index, "", "NO", "", ""
 
         # Read HTML
         if str(link).startswith(("http://", "https://")):
-
-            headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                              "AppleWebKit/537.36 (KHTML, like Gecko) "
-                              "Chrome/120.0 Safari/537.36",
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                "Accept-Language": "en-US,en;q=0.9"
-            }
-
-            html = get_page(link)
-
+            html = get_page(str(link))
         else:
-
             with open(link, "r", encoding="utf-8") as f:
                 html = f.read()
-
-
 
         # Parse HTML
         soup = BeautifulSoup(html, "html.parser")
 
-
+        # IMPORTANT:
+        # Don't remove script/style if find_price() might need them.
+        # Your current price scrapers don't appear to need them.
         for tag in soup(["script", "style"]):
             tag.decompose()
 
-
         text = soup.get_text(separator=" ", strip=True)
 
-
-        contents.append(text)
-
-
-        
-
-
         match = find_price(
-            link,
+            str(link),
             soup
         )
 
         if match:
-
-            status.append("OK")
-
             price = match[0]
             currency = match[1]
 
+            # Persian numbers -> English
             price = price.translate(
-                str.maketrans("۰۱۲۳۴۵۶۷۸۹", "0123456789")
+                str.maketrans(
+                    "۰۱۲۳۴۵۶۷۸۹",
+                    "0123456789"
+                )
             )
 
             price = price.replace(",", "").replace("٬", "")
 
             price = float(price)
 
+            # Convert Toman -> Rial
             if currency == "تومان":
                 price *= 10
 
-            prices.append(int(price))
+            price = int(price)
 
             quantity = df.loc[index, "Quantity"]
 
             if pd.isna(quantity):
                 quantity = 1
 
-            total_prices.append(int(price * float(quantity)))
+            total_price = int(price * float(quantity))
 
-        else:
+            return (
+                index,
+                text,
+                "OK",
+                price,
+                total_price
+            )
 
-            status.append("NO")
-            prices.append("")
-            total_prices.append("")
-
+        return index, text, "NO", "", ""
 
     except Exception as e:
 
         print(f"Error processing {link}: {e}")
 
-        contents.append(f"ERROR: {e}")
-        status.append("ERROR")
-        prices.append("")
-        total_prices.append("")
+        return (
+            index,
+            f"ERROR: {e}",
+            "ERROR",
+            "",
+            ""
+        )
 
 
+# --------------------------------
+# PROCESS URLS IN PARALLEL
+# --------------------------------
+
+results = [None] * len(df)
+
+# Start with 10 workers.
+# You can try 15 or 20 if the websites allow it.
+MAX_WORKERS = 10
+
+with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+
+    futures = [
+        executor.submit(
+            process_row,
+            index,
+            link
+        )
+        for index, link in enumerate(df["Link"])
+    ]
+
+    for future in as_completed(futures):
+
+        result = future.result()
+
+        index = result[0]
+
+        results[index] = result
+
+        print(
+            f"Finished {index + 1}/{len(df)}"
+        )
+
+
+# --------------------------------
+# Restore original Excel order
+# --------------------------------
+
+contents = []
+status = []
+prices = []
+total_prices = []
+
+for result in results:
+
+    index, content, stat, price, total_price = result
+
+    contents.append(content)
+    status.append(stat)
+    prices.append(price)
+    total_prices.append(total_price)
 
 # Add columns
 # df["Content"] = contents   # Don't save this column
