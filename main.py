@@ -10,6 +10,7 @@ from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 from urllib.parse import urlparse
 from scrapers.router import find_price
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Input and output Excel files
 INPUT_EXCEL = "database.xlsx"
@@ -37,18 +38,19 @@ total_prices = []
 def get_page(url):
 
     headers = {
-        "User-Agent": 
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 "
-        "Chrome/120.0 Safari/537.36",
+        "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 "
+            "(KHTML, like Gecko) "
+            "Chrome/120.0 Safari/537.36",
 
         "Accept":
-        "text/html,application/xhtml+xml",
+            "text/html,application/xhtml+xml,"
+            "application/xml;q=0.9,*/*;q=0.8",
 
         "Accept-Language":
-        "en-US,en;q=0.9"
+            "en-US,en;q=0.9"
     }
-
 
     for attempt in range(2):
 
@@ -57,27 +59,22 @@ def get_page(url):
             response = requests.get(
                 url,
                 headers=headers,
-                timeout=30
+                timeout=15
             )
 
             response.raise_for_status()
 
             return response.text
 
-
         except Exception as e:
 
             print(
-                f"Attempt {attempt+1}/2 failed: {url}"
+                f"Attempt {attempt + 1}/2 failed: {url}"
             )
 
-
             if attempt < 1:
-
-                time.sleep(3)
-
+                time.sleep(1)
             else:
-
                 raise e
             
 
