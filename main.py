@@ -11,6 +11,7 @@ from openpyxl.styles import PatternFill
 from urllib.parse import urlparse
 from scrapers.router import find_price
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from tqdm import tqdm
 
 # Input and output Excel files
 INPUT_EXCEL = "database.xlsx"
@@ -179,18 +180,18 @@ with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         for index, link in enumerate(df["Link"])
     ]
 
-    for future in as_completed(futures):
+    for future in tqdm(
+        as_completed(futures),
+        total=len(futures),
+        desc="Scraping sites",
+        unit="site"
+    ):
 
         result = future.result()
 
         index = result[0]
 
         results[index] = result
-
-        print(
-            f"Finished {index + 1}/{len(df)}"
-        )
-
 
 # --------------------------------
 # Restore original Excel order
