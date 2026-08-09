@@ -24,7 +24,7 @@ df = pd.read_excel(INPUT_EXCEL)
 df.columns = df.columns.str.strip()
 
 
-if "Link" not in df.columns:
+if "Supplier" not in df.columns:
     raise ValueError(f"Excel file must contain 'Link' column. Found: {list(df.columns)}")
 
 if "Quantity" not in df.columns:
@@ -177,7 +177,7 @@ with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
             index,
             link
         )
-        for index, link in enumerate(df["Link"])
+        for index, link in enumerate(df["Supplier"])
     ]
 
     for future in tqdm(
@@ -236,16 +236,16 @@ link_col = None
 
 for cell in ws[1]:
 
-    if cell.value == "Link":
-        link_col = cell.column
+    if cell.value == "Supplier":
+        supplier_col = cell.column
         break
 
 
-if link_col:
+if supplier_col:
 
     for row in range(2, ws.max_row + 1):
 
-        cell = ws.cell(row=row, column=link_col)
+        cell = ws.cell(row=row, column=supplier_col)
 
         if cell.value:
 
