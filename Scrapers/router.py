@@ -24,10 +24,10 @@ from . import (
     efarvahar,
     nemonehsaz,
     ariabox,
-    bazaarbargh,
     elecohm,
     daneshjookit,
-    sparkeyelec
+    sparkeyelec,
+    zagroselec
 )
 
 
@@ -78,14 +78,14 @@ SCRAPERS = {
     "nemonehsaz.com": nemonehsaz.get_price,   
 
     "ariaebox.com": ariabox.get_price,
-    
-    "bazaarbargh.com": bazaarbargh.get_price,
 
     "elecohm.com": elecohm.get_price,
 
     "daneshjookit.com": daneshjookit.get_price,
 
-    "sparkeyelec.ir": sparkeyelec.get_price       
+    "sparkeyelec.ir": sparkeyelec.get_price,
+
+    "zagroselec.ir": zagroselec.get_price,           
 }
 
 

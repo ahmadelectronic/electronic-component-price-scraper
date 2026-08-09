@@ -21,7 +21,7 @@ from . import arefelectronic
 from . import efarvahar
 from . import nemonehsaz
 from . import ariabox
-from . import bazaarbargh
 from . import elecohm
 from . import daneshjookit
 from . import sparkeyelec
+from . import zagroselec
