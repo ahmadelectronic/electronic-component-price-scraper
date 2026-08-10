@@ -25,3 +25,5 @@ from . import elecohm
 from . import daneshjookit
 from . import sparkeyelec
 from . import zagroselec
+from . import chehrehelec
+from . import sun7shop

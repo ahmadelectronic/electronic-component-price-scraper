@@ -27,7 +27,9 @@ from . import (
     elecohm,
     daneshjookit,
     sparkeyelec,
-    zagroselec
+    zagroselec,
+    chehrehelec,
+    sun7shop
 )
 
 
@@ -85,7 +87,11 @@ SCRAPERS = {
 
     "sparkeyelec.ir": sparkeyelec.get_price,
 
-    "zagroselec.ir": zagroselec.get_price,           
+    "zagroselec.ir": zagroselec.get_price,   
+
+    "chehrehelec.com": chehrehelec.get_price, 
+
+    "sun7shop.ir": sun7shop.get_price,                 
 }
 
 
