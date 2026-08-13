@@ -318,16 +318,12 @@ Possible future improvements include:
 
 ## License
 
-Add your preferred license here.
-
-For example:
-
 ```text
-MIT License
+GNU GENERAL PUBLIC LICENSE
 ```
 
 ## Author
 
-**Your Name**
+**Ahmadelectronic@gmail.com**
 
 If you found this project useful, feel free to ⭐ the repository.
