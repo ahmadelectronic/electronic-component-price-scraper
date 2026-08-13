@@ -364,7 +364,10 @@ if total_col:
 
     for row in range(2, ws.max_row + 1):
 
-        value = ws.cell(row=row, column=total_col).value
+        value = ws.cell(
+            row=row,
+            column=total_col
+        ).value
 
         if value:
 
@@ -372,6 +375,46 @@ if total_col:
                 grand_total += float(value)
             except:
                 pass
+
+    # --------------------------------
+    # PRICE HISTORY
+    # --------------------------------
+
+    HISTORY_EXCEL = "price_history.xlsx"
+
+    previous_total = None
+
+
+    # Read previous run
+    if os.path.exists(HISTORY_EXCEL):
+
+        history_wb = load_workbook(HISTORY_EXCEL)
+        history_ws = history_wb.active
+
+        if history_ws.max_row >= 2:
+
+            previous_total = history_ws.cell(
+                row=history_ws.max_row,
+                column=2
+            ).value
+
+    else:
+
+        history_wb = Workbook()
+
+        history_ws = history_wb.active
+
+        history_ws.title = "Price History"
+
+        history_ws.append([
+            "Date / Time",
+            "Grand Total"
+        ])
+
+
+    # --------------------------------
+    # Add current Grand Total
+    # --------------------------------
 
     last_row = ws.max_row + 1
 
@@ -385,6 +428,80 @@ if total_col:
         column=total_col
     ).value = grand_total
 
+
+    # --------------------------------
+    # Previous Total + Difference
+    # --------------------------------
+
+    if previous_total is not None:
+
+        previous_row = last_row + 1
+
+        ws.cell(
+            row=previous_row,
+            column=total_col - 1
+        ).value = "Previous Total"
+
+        ws.cell(
+            row=previous_row,
+            column=total_col
+        ).value = previous_total
+
+
+        # Calculate difference
+
+        difference = (
+            grand_total -
+            float(previous_total)
+        )
+
+
+        difference_row = last_row + 2
+
+        ws.cell(
+            row=difference_row,
+            column=total_col - 1
+        ).value = "Difference"
+
+        ws.cell(
+            row=difference_row,
+            column=total_col
+        ).value = difference
+
+        ws.cell(
+            row=difference_row,
+            column=total_col
+        ).number_format = '#,##0;[Red]-#,##0'
+
+
+    # --------------------------------
+    # Save current run to history
+    # --------------------------------
+
+    run_time = datetime.now().strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
+
+    history_ws.append([
+        run_time,
+        grand_total
+    ])
+
+    history_ws.column_dimensions["A"].width = 22
+    history_ws.column_dimensions["B"].width = 20
+
+    for row in range(
+        2,
+        history_ws.max_row + 1
+    ):
+
+        history_ws.cell(
+            row=row,
+            column=2
+        ).number_format = '#,##0'
+
+
+    history_wb.save(HISTORY_EXCEL)
 
     # --------------------------------
     # SAVE PRICE HISTORY
@@ -504,8 +621,6 @@ if total_price_col:
     ws.column_dimensions[
         ws.cell(row=1, column=total_price_col).column_letter
     ].width = max_length + 2
-
-
 
 
 # Save final workbook
