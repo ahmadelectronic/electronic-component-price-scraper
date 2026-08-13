@@ -6,17 +6,18 @@ import time
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-from openpyxl import load_workbook
+from openpyxl import Workbook, load_workbook
 from openpyxl.styles import PatternFill
 from urllib.parse import urlparse
 from scrapers.router import find_price
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
+from datetime import datetime
 
 # Input and output Excel files
 INPUT_EXCEL = "database.xlsx"
 OUTPUT_EXCEL = "output.xlsx"
-
+HISTORY_EXCEL = "price_history.xlsx"
 
 # Read Excel file
 df = pd.read_excel(INPUT_EXCEL)
@@ -361,29 +362,79 @@ if total_col:
 
     grand_total = 0
 
-
     for row in range(2, ws.max_row + 1):
 
         value = ws.cell(row=row, column=total_col).value
-
 
         if value:
 
             try:
                 grand_total += float(value)
-
             except:
                 pass
 
-
-
     last_row = ws.max_row + 1
 
+    ws.cell(
+        row=last_row,
+        column=total_col - 1
+    ).value = "Grand Total"
 
-    ws.cell(row=last_row, column=total_col - 1).value = "Grand Total"
+    ws.cell(
+        row=last_row,
+        column=total_col
+    ).value = grand_total
 
-    ws.cell(row=last_row, column=total_col).value = grand_total
 
+    # --------------------------------
+    # SAVE PRICE HISTORY
+    # --------------------------------
+
+    if not os.path.exists(HISTORY_EXCEL):
+
+        history_wb = Workbook()
+        history_ws = history_wb.active
+        history_ws.title = "Price History"
+
+        history_ws.append([
+            "Date / Time",
+            "Grand Total"
+        ])
+
+    else:
+
+        history_wb = load_workbook(HISTORY_EXCEL)
+        history_ws = history_wb.active
+
+
+    run_time = datetime.now().strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
+
+
+    history_ws.append([
+        run_time,
+        grand_total
+    ])
+
+
+    history_ws.column_dimensions["A"].width = 22
+    history_ws.column_dimensions["B"].width = 20
+
+
+    for row in range(2, history_ws.max_row + 1):
+
+        history_ws.cell(
+            row=row,
+            column=2
+        ).number_format = '#,##0'
+
+
+    history_wb.save(HISTORY_EXCEL)
+
+    print(
+        f"History saved: {HISTORY_EXCEL}"
+    )
 # -------------------------------
 # Format Price columns with comma
 # -------------------------------
@@ -453,6 +504,8 @@ if total_price_col:
     ws.column_dimensions[
         ws.cell(row=1, column=total_price_col).column_letter
     ].width = max_length + 2
+
+
 
 
 # Save final workbook
