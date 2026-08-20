@@ -26,7 +26,7 @@ df.columns = df.columns.str.strip()
 
 
 if "Supplier" not in df.columns:
-    raise ValueError(f"Excel file must contain 'Link' column. Found: {list(df.columns)}")
+    raise ValueError(f"Excel file must contain 'Supplier' column. Found: {list(df.columns)}")
 
 if "Quantity" not in df.columns:
     raise ValueError(f"Excel file must contain 'Quantity' column. Found: {list(df.columns)}")
@@ -80,16 +80,16 @@ def get_page(url):
                 raise e
             
 
-def process_row(index, link):
+def process_row(index, supplier):
     try:
-        if pd.isna(link):
+        if pd.isna(supplier):
             return index, "", "NO", "", ""
 
         # Read HTML
-        if str(link).startswith(("http://", "https://")):
-            html = get_page(str(link))
+        if str(supplier).startswith(("http://", "https://")):
+            html = get_page(str(supplier))
         else:
-            with open(link, "r", encoding="utf-8") as f:
+            with open(supplier, "r", encoding="utf-8") as f:
                 html = f.read()
 
         # Parse HTML
@@ -104,7 +104,7 @@ def process_row(index, link):
         text = soup.get_text(separator=" ", strip=True)
 
         match = find_price(
-            str(link),
+            str(supplier),
             soup
         )
 
@@ -149,7 +149,7 @@ def process_row(index, link):
 
     except Exception as e:
 
-        print(f"Error processing {link}: {e}")
+        print(f"Error processing {supplier}: {e}")
 
         return (
             index,
@@ -176,9 +176,9 @@ with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         executor.submit(
             process_row,
             index,
-            link
+            supplier
         )
-        for index, link in enumerate(df["Supplier"])
+        for index, supplier in enumerate(df["Supplier"])
     ]
 
     for future in tqdm(
@@ -233,7 +233,7 @@ ws = wb.active
 # Make Link clickable
 # -------------------------------
 
-link_col = None
+supplier_col = None
 
 for cell in ws[1]:
 
@@ -290,7 +290,7 @@ if status_col:
             status_cell.fill = red_fill
 
 # -------------------------------
-# Color Link column by website
+# Color supplier column by website
 # -------------------------------
 
 from urllib.parse import urlparse
@@ -312,18 +312,18 @@ colors = [
     "A2C4C9"   # Teal
 ]
 
-if link_col:
+if supplier_col:
 
     color_index = 0
 
     for row in range(2, ws.max_row + 1):
 
-        link_cell = ws.cell(row=row, column=link_col)
+        supplier_cell = ws.cell(row=row, column=supplier_col)
 
-        if link_cell.value:
+        if supplier_cell.value:
 
             try:
-                domain = urlparse(str(link_cell.value)).netloc
+                domain = urlparse(str(supplier_cell.value)).netloc
 
                 # remove www.
                 domain = domain.replace("www.", "")
@@ -339,8 +339,8 @@ if link_col:
                     color_index += 1
 
 
-                # Color only Link cell
-                link_cell.fill = site_colors[domain]
+                # Color only supplier cell
+                supplier_cell.fill = site_colors[domain]
 
             except:
                 pass
@@ -360,6 +360,10 @@ for cell in ws[1]:
 
 if total_col:
 
+    # --------------------------------
+    # Calculate Grand Total
+    # --------------------------------
+
     grand_total = 0
 
     for row in range(2, ws.max_row + 1):
@@ -369,21 +373,18 @@ if total_col:
             column=total_col
         ).value
 
-        if value:
+        if value is not None:
 
             try:
                 grand_total += float(value)
-            except:
+            except (ValueError, TypeError):
                 pass
 
     # --------------------------------
     # PRICE HISTORY
     # --------------------------------
 
-    HISTORY_EXCEL = "price_history.xlsx"
-
     previous_total = None
-
 
     # Read previous run
     if os.path.exists(HISTORY_EXCEL):
@@ -411,9 +412,8 @@ if total_col:
             "Grand Total"
         ])
 
-
     # --------------------------------
-    # Add current Grand Total
+    # Add Grand Total to output.xlsx
     # --------------------------------
 
     last_row = ws.max_row + 1
@@ -427,7 +427,6 @@ if total_col:
         row=last_row,
         column=total_col
     ).value = grand_total
-
 
     # --------------------------------
     # Previous Total + Difference
@@ -447,14 +446,10 @@ if total_col:
             column=total_col
         ).value = previous_total
 
-
-        # Calculate difference
-
         difference = (
             grand_total -
             float(previous_total)
         )
-
 
         difference_row = last_row + 2
 
@@ -473,9 +468,8 @@ if total_col:
             column=total_col
         ).number_format = '#,##0;[Red]-#,##0'
 
-
     # --------------------------------
-    # Save current run to history
+    # Save ONE history entry
     # --------------------------------
 
     run_time = datetime.now().strftime(
@@ -489,55 +483,6 @@ if total_col:
 
     history_ws.column_dimensions["A"].width = 22
     history_ws.column_dimensions["B"].width = 20
-
-    for row in range(
-        2,
-        history_ws.max_row + 1
-    ):
-
-        history_ws.cell(
-            row=row,
-            column=2
-        ).number_format = '#,##0'
-
-
-    history_wb.save(HISTORY_EXCEL)
-
-    # --------------------------------
-    # SAVE PRICE HISTORY
-    # --------------------------------
-
-    if not os.path.exists(HISTORY_EXCEL):
-
-        history_wb = Workbook()
-        history_ws = history_wb.active
-        history_ws.title = "Price History"
-
-        history_ws.append([
-            "Date / Time",
-            "Grand Total"
-        ])
-
-    else:
-
-        history_wb = load_workbook(HISTORY_EXCEL)
-        history_ws = history_wb.active
-
-
-    run_time = datetime.now().strftime(
-        "%Y-%m-%d %H:%M:%S"
-    )
-
-
-    history_ws.append([
-        run_time,
-        grand_total
-    ])
-
-
-    history_ws.column_dimensions["A"].width = 22
-    history_ws.column_dimensions["B"].width = 20
-
 
     for row in range(2, history_ws.max_row + 1):
 
@@ -545,7 +490,6 @@ if total_col:
             row=row,
             column=2
         ).number_format = '#,##0'
-
 
     history_wb.save(HISTORY_EXCEL)
 
