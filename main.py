@@ -82,14 +82,57 @@ def get_page(url):
 
 def process_row(index, supplier):
     try:
+
+        # --------------------------------
+        # Empty supplier
+        # --------------------------------
+
         if pd.isna(supplier):
             return index, "", "NO", "", ""
 
-        # Read HTML
-        if str(supplier).startswith(("http://", "https://")):
-            html = get_page(str(supplier))
+        # --------------------------------
+        # Manual price
+        # --------------------------------
+
+        if isinstance(supplier, (int, float)):
+
+            price = float(supplier)
+
+            quantity = df.loc[index, "Quantity"]
+
+            if pd.isna(quantity):
+                quantity = 1
+
+            total_price = int(
+                price * float(quantity)
+            )
+
+            return (
+                index,
+                "",
+                "OK",
+                int(price),
+                total_price
+            )
+
+        # --------------------------------
+        # Supplier URL / local HTML file
+        # --------------------------------
+
+        supplier = str(supplier).strip()
+
+        if supplier.startswith(("http://", "https://")):
+
+            html = get_page(supplier)
+
         else:
-            with open(supplier, "r", encoding="utf-8") as f:
+
+            with open(
+                supplier,
+                "r",
+                encoding="utf-8"
+            ) as f:
+
                 html = f.read()
 
         # Parse HTML
