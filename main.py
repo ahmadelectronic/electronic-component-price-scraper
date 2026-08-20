@@ -472,30 +472,51 @@ if total_col:
     # Save ONE history entry
     # --------------------------------
 
+# --------------------------------
+# Save current run to history
+# --------------------------------
+
     run_time = datetime.now().strftime(
         "%Y-%m-%d %H:%M:%S"
     )
 
-    history_ws.append([
-        run_time,
-        grand_total
-    ])
+    # Find the last real history row
+    last_history_row = 1
+
+    for row in range(history_ws.max_row, 1, -1):
+
+        if (
+            history_ws.cell(row=row, column=1).value is not None
+            or
+            history_ws.cell(row=row, column=2).value is not None
+        ):
+            last_history_row = row
+            break
+
+    # Add new record directly after the last real record
+    new_row = last_history_row + 1
+
+    history_ws.cell(
+        row=new_row,
+        column=1
+    ).value = run_time
+
+    history_ws.cell(
+        row=new_row,
+        column=2
+    ).value = grand_total
+
+    history_ws.cell(
+        row=new_row,
+        column=2
+    ).number_format = '#,##0'
 
     history_ws.column_dimensions["A"].width = 22
     history_ws.column_dimensions["B"].width = 20
 
-    for row in range(2, history_ws.max_row + 1):
-
-        history_ws.cell(
-            row=row,
-            column=2
-        ).number_format = '#,##0'
-
     history_wb.save(HISTORY_EXCEL)
 
-    print(
-        f"History saved: {HISTORY_EXCEL}"
-    )
+    print(f"History saved: {HISTORY_EXCEL}")
 # -------------------------------
 # Format Price columns with comma
 # -------------------------------
