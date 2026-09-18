@@ -452,7 +452,8 @@ if total_col:
 
         history_ws.append([
             "Date / Time",
-            "Grand Total"
+            "Grand Total",
+            "Price Change %"
         ])
 
     # --------------------------------
@@ -554,8 +555,41 @@ if total_col:
         column=2
     ).number_format = '#,##0'
 
+    # --------------------------------
+    # Calculate Price Change %
+    # --------------------------------
+
+    percentage_change = None
+
+    if previous_total is not None:
+        try:
+            previous_total_float = float(previous_total)
+
+            if previous_total_float != 0:
+                percentage_change = (
+                    (grand_total - previous_total_float)
+                    / previous_total_float
+                )
+        except (ValueError, TypeError):
+            percentage_change = None
+
+
+    # Save percentage in Column C
+    history_ws.cell(
+        row=new_row,
+        column=3
+    ).value = percentage_change
+
+    history_ws.cell(
+        row=new_row,
+        column=3
+    ).number_format = '0.00%'
+
+
+
     history_ws.column_dimensions["A"].width = 22
     history_ws.column_dimensions["B"].width = 20
+    history_ws.column_dimensions["C"].width = 18
 
     history_wb.save(HISTORY_EXCEL)
 
