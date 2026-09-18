@@ -172,13 +172,13 @@ cd YOUR_REPOSITORY
 Install the required Python packages:
 
 ```bash
-pip install pandas requests beautifulsoup4 openpyxl tqdm
+python -m pip install pandas requests beautifulsoup4 openpyxl tqdm
 ```
 
 If the project contains a `requirements.txt` file, you can install everything with:
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 ## Input Excel File
 
