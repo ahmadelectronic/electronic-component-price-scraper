@@ -1,2 +1,4 @@
 # Ignore specific file
 output.xlsx
+__pycache__/
+*.py[cod]
