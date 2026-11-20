@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import PatternFill
 from urllib.parse import urlparse
-from scrapers.router import find_price
+from Scrapers.router import find_price
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 from datetime import datetime
