@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 output.xlsx
 scrapers/__pycache__/__init__.cpython-313.pyc
 scrapers/__pycache__/arefelectronic.cpython-313.pyc
@@ -32,3 +33,14 @@ scrapers/__pycache__/zagroselec.cpython-313.pyc
 Scrapers/__pycache__/chehrehelec.cpython-313.pyc
 Scrapers/__pycache__/sun7shop.cpython-313.pyc
 price_history.xlsx
+=======
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+output.xlsx
+.pytest_cache/
+>>>>>>> 4a315ac (change structure)

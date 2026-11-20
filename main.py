@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import os
 import re
 import platform
@@ -697,3 +698,12 @@ try:
 except Exception as e:
 
     print(f"Could not open Excel file automatically: {e}")
+=======
+"""Run the supplier price monitor using the reusable library."""
+
+from component_price_scraper.cli import main
+
+
+if __name__ == "__main__":
+    main()
+>>>>>>> 4a315ac (change structure)

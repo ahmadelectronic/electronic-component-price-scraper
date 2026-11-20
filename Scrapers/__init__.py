@@ -1,29 +1,5 @@
-from . import electronic724
-from . import eca
-from . import lionelectronic
-from . import qom_elec
-from . import bahar_enclosure
-from . import buybestelectronic
-from . import javanelec
-from . import roboeq
-from . import thecaferobot
-from . import partelec
-from . import iran_module
-from . import skytech
-from . import kavirelectronic
-from . import esys
-from . import sisoog
-from . import jamtronic
-from . import ideaelec
-from . import voltatech
-from . import microele
-from . import arefelectronic
-from . import efarvahar
-from . import nemonehsaz
-from . import ariabox
-from . import elecohm
-from . import daneshjookit
-from . import sparkeyelec
-from . import zagroselec
-from . import chehrehelec
-from . import sun7shop
+"""Compatibility imports for older code using ``scrapers.router``."""
+
+from component_price_scraper.scrapers.router import SCRAPERS, find_price, register_scraper
+
+__all__ = ["SCRAPERS", "find_price", "register_scraper"]
