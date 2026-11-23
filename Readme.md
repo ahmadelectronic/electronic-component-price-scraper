@@ -8,17 +8,70 @@ The original application logic has been separated into a reusable package. `main
 
 ## Install
 
-Python 3.10 or newer is required.
+## Python Environment (Recommended)
+
+It is recommended to use a Python virtual environment to keep project dependencies isolated.
+
+### Windows
+
+Create a virtual environment:
 
 ```bash
+python -m venv .venv
+```
+
+Activate it:
+
+```bash
+.venv\Scripts\activate
+```
+
+### Linux / macOS
+
+Create a virtual environment:
+
+```bash
+python3 -m venv .venv
+```
+
+Activate it:
+
+```bash
+source .venv/bin/activate
+```
+
+### Install Dependencies
+
+After activating the environment, install the required packages:
+
+```bash
+python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-To install the project as a library in editable mode:
+### Verify Python Environment
+
+Check your Python version:
 
 ```bash
-python -m pip install -e .
+python --version
 ```
+
+Check installed dependencies:
+
+```bash
+python -m pip list
+```
+
+### Deactivate Environment
+
+When you finish working with the project:
+
+```bash
+deactivate
+```
+
+**Note:** Activate the virtual environment before running the application or executing tests. The `.venv` directory should not be committed to version control.
 
 ## Run the Excel monitor
 
