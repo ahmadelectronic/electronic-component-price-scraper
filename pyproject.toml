@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "electronic-component-price-scraper"
+version = "1.0.0"
+description = "Reusable supplier price scraping and Excel price monitoring library"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+dependencies = [
+    "requests>=2.31",
+    "beautifulsoup4>=4.12",
+    "pandas>=2.0",
+    "openpyxl>=3.1",
+    "tqdm>=4.65",
+]
+
+[project.scripts]
+component-price-scraper = "component_price_scraper.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["component_price_scraper*", "scrapers*"]
