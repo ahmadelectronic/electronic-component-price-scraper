@@ -49,7 +49,7 @@ def normalize_price(value: Any) -> int:
 
 
 def _is_missing(value: Any) -> bool:
-    if value is None or type(value).__name__ in {"NAType", "NaTType"}:
+    if value is None or (isinstance(value, str) and not value.strip()) or type(value).__name__ in {"NAType", "NaTType"}:
         return True
     try:
         return bool(math.isnan(value))
@@ -88,6 +88,12 @@ class PriceScraper:
                 return ScrapeResult("OK", price, int(Decimal(price) * qty))
 
             source = str(supplier).strip()
+            # HTML form inputs are strings. Treat a plain numeric string as a
+            # manually entered price, just like a numeric Excel cell.
+            if re.fullmatch(r"[+-]?[0-9۰-۹٠-٩][0-9۰-۹٠-٩\s,٬.]*", source):
+                price = normalize_price(source)
+                return ScrapeResult("OK", price, int(Decimal(price) * qty))
+
             if source.startswith(("http://", "https://")):
                 html = self._fetch(source)
             else:

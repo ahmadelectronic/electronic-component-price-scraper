@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101a35">
+  <title>ناظر قیمت قطعات الکترونیکی</title>
+  <style>
+    :root {
+      --ink: #17223b;
+      --muted: #75809a;
+      --line: #e7ebf3;
+      --paper: #ffffff;
+      --canvas: #f4f6fb;
+      --navy: #101a35;
+      --blue: #536dfe;
+      --blue-soft: #eef0ff;
+      --green: #15966c;
+      --green-soft: #e9f8f1;
+      --orange: #c77b1b;
+      --orange-soft: #fff5e6;
+      --red: #cb4b5a;
+      --red-soft: #fff0f1;
+      --shadow: 0 12px 36px rgba(27, 42, 82, .055);
+      font-family: Vazirmatn, IRANSans, Tahoma, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--canvas); color: var(--ink); font-size: 14px; }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .shell { max-width: 1480px; margin: 0 auto; padding: 28px 30px 48px; }
+    .topbar { background: var(--navy); color: white; border-radius: 22px; padding: 24px 28px; display: flex; align-items: center; justify-content: space-between; gap: 20px; box-shadow: 0 18px 38px rgba(16,26,53,.13); }
+    .brand { display: flex; align-items: center; gap: 15px; }
+    .brand-mark { width: 48px; height: 48px; border-radius: 15px; display: grid; place-items: center; background: rgba(255,255,255,.12); color: #cbd3ff; font-size: 25px; }
+    h1 { margin: 0 0 6px; font-size: 21px; font-weight: 800; letter-spacing: -.3px; }
+    .subtitle { margin: 0; color: #aeb8d4; font-size: 12px; }
+    .top-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
+    .btn { border: 1px solid transparent; border-radius: 11px; padding: 10px 15px; min-height: 40px; font-weight: 700; font-size: 12px; transition: .15s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+    .btn:hover { transform: translateY(-1px); filter: brightness(.98); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .btn-light { background: white; color: var(--navy); }
+    .btn-ghost { color: #e2e7ff; border-color: rgba(255,255,255,.2); background: rgba(255,255,255,.06); }
+    .btn-primary { background: var(--blue); color: white; box-shadow: 0 7px 16px rgba(83,109,254,.18); }
+    .btn-outline { background: white; border-color: var(--line); color: #45516b; }
+    .btn-danger { background: var(--red-soft); color: var(--red); }
+    .status-line { display: flex; align-items: center; gap: 8px; color: #b9c4dc; font-size: 11px; margin-top: 12px; }
+    .pulse { width: 7px; height: 7px; background: #44d6a5; border-radius: 50%; box-shadow: 0 0 0 4px rgba(68,214,165,.12); }
+    .section-head { display: flex; justify-content: space-between; align-items: end; gap: 15px; margin: 27px 2px 13px; }
+    .section-head h2 { margin: 0; font-size: 15px; font-weight: 800; }
+    .section-head p { margin: 5px 0 0; color: var(--muted); font-size: 11px; }
+    .metrics { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 14px; }
+    .metric { background: var(--paper); border: 1px solid var(--line); border-radius: 17px; padding: 17px 18px; box-shadow: var(--shadow); min-height: 104px; }
+    .metric-top { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 11px; }
+    .metric-icon { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; font-size: 15px; background: var(--blue-soft); color: var(--blue); }
+    .metric:nth-child(2) .metric-icon { background: var(--green-soft); color: var(--green); }
+    .metric:nth-child(3) .metric-icon { background: var(--orange-soft); color: var(--orange); }
+    .metric:nth-child(4) .metric-icon { background: #f1edff; color: #7655c9; }
+    .metric-value { font-size: 24px; font-weight: 800; letter-spacing: -.5px; margin-top: 10px; font-variant-numeric: tabular-nums; }
+    .metric-value small { font-size: 10px; font-weight: 500; color: var(--muted); }
+    .workspace { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(270px, .8fr); gap: 15px; align-items: start; margin-top: 16px; }
+    .panel { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); min-width: 0; }
+    .panel-head { display: flex; justify-content: space-between; align-items: center; padding: 17px 19px; border-bottom: 1px solid var(--line); gap: 12px; }
+    .panel-title { font-size: 13px; font-weight: 800; margin: 0; }
+    .panel-hint { font-size: 10px; color: var(--muted); margin-top: 4px; }
+    .table-tools { display: flex; gap: 7px; flex-wrap: wrap; }
+    .btn-sm { padding: 7px 11px; min-height: 32px; font-size: 10px; border-radius: 9px; }
+    .table-wrap { overflow: auto; max-height: 530px; }
+    table { width: 100%; border-collapse: collapse; white-space: nowrap; }
+    th { position: sticky; top: 0; z-index: 1; background: #f9faff; color: #78839b; font-size: 10px; font-weight: 700; text-align: right; padding: 12px 12px; border-bottom: 1px solid var(--line); }
+    td { padding: 8px 10px; border-bottom: 1px solid #eff1f6; font-size: 11px; vertical-align: middle; }
+    tbody tr:hover { background: #fafbff; }
+    .cell-input { width: 100%; min-width: 88px; border: 1px solid transparent; border-radius: 7px; outline: none; background: transparent; color: var(--ink); padding: 7px 8px; font-size: 11px; }
+    .cell-input:hover, .cell-input:focus { border-color: #dbe0ff; background: white; }
+    .cell-input.supplier { min-width: 230px; direction: ltr; text-align: left; }
+    .cell-input.quantity { min-width: 65px; width: 72px; text-align: center; direction: ltr; }
+    .cell-input:disabled { color: #8892a7; }
+    .status-pill { display: inline-block; border-radius: 20px; padding: 4px 8px; font-size: 9px; font-weight: 800; }
+    .status-OK { background: var(--green-soft); color: var(--green); }
+    .status-NO, .status-PENDING { background: var(--orange-soft); color: var(--orange); }
+    .status-ERROR { background: var(--red-soft); color: var(--red); }
+    .num { font-variant-numeric: tabular-nums; direction: ltr; text-align: right; }
+    .empty { text-align: center; color: #929bb0; padding: 38px 12px; }
+    .delete-row { border: 0; background: transparent; color: #b2bac9; font-size: 17px; border-radius: 7px; width: 28px; height: 28px; }
+    .delete-row:hover { background: var(--red-soft); color: var(--red); }
+    .side-stack { display: grid; gap: 15px; }
+    .run-body { padding: 18px; }
+    .run-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; margin-bottom: 14px; }
+    .field label { display: block; font-size: 10px; color: var(--muted); margin-bottom: 6px; }
+    .field input { width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--line); border-radius: 9px; color: var(--ink); background: #fbfcff; outline: none; direction: ltr; }
+    .field input:focus { border-color: #aab5ff; box-shadow: 0 0 0 3px rgba(83,109,254,.08); }
+    .run-button { width: 100%; min-height: 43px; }
+    .progress-area { margin-top: 17px; }
+    .progress-label { display: flex; justify-content: space-between; color: var(--muted); font-size: 10px; margin-bottom: 8px; gap: 12px; }
+    .progress-track { height: 7px; border-radius: 10px; background: #edf0f7; overflow: hidden; }
+    .progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #6c82ff, #4d63e9); border-radius: 10px; transition: width .3s ease; }
+    .run-message { font-size: 10px; color: var(--muted); margin: 10px 0 0; line-height: 1.8; }
+    .run-message.error { color: var(--red); }
+    .downloads { display: grid; gap: 8px; padding: 15px 18px 18px; }
+    .download-link { display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 10px; padding: 10px 11px; text-decoration: none; color: #44516d; font-size: 10px; font-weight: 700; }
+    .download-link:hover { background: #f8f9ff; border-color: #d7ddff; }
+    .download-link span:last-child { color: var(--blue); font-size: 15px; }
+    .history-body { padding: 14px 17px 16px; }
+    .chart { width: 100%; height: 116px; display: block; overflow: visible; }
+    .chart-note { text-align: center; color: #9aa3b5; font-size: 10px; padding: 8px 0; }
+    .history-list { max-height: 160px; overflow: auto; }
+    .history-row { display: flex; justify-content: space-between; gap: 10px; padding: 8px 2px; border-bottom: 1px solid #f0f2f7; font-size: 10px; }
+    .history-row span:first-child { color: var(--muted); }
+    .history-row strong { font-variant-numeric: tabular-nums; }
+    .footer { text-align: center; color: #a0a8b8; font-size: 10px; margin-top: 25px; }
+    .toast { position: fixed; bottom: 22px; left: 22px; z-index: 20; max-width: min(420px, calc(100vw - 44px)); padding: 12px 16px; border-radius: 12px; background: var(--navy); color: white; box-shadow: 0 12px 35px rgba(16,26,53,.2); font-size: 12px; opacity: 0; transform: translateY(10px); pointer-events: none; transition: .2s ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.error { background: #9e3445; }
+    .hidden { display: none !important; }
+    @media (max-width: 1050px) { .workspace { grid-template-columns: 1fr; } .side-stack { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .shell { padding: 14px 12px 32px; } .topbar { padding: 18px; align-items: flex-start; flex-direction: column; } .top-actions { width: 100%; } .top-actions .btn { flex: 1; } .metrics { grid-template-columns: repeat(2,1fr); gap: 9px; } .metric { padding: 13px; min-height: 94px; } .metric-value { font-size: 20px; } .side-stack { grid-template-columns: 1fr; } .section-head { margin-top: 22px; } .panel-head { align-items: flex-start; flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">⌁</div>
+          <div>
+            <h1>ناظر قیمت قطعات الکترونیکی</h1>
+            <p class="subtitle">مدیریت کالاها، پایش فروشگاه‌ها و گزارش تغییر قیمت‌ها</p>
+          </div>
+        </div>
+        <div class="status-line"><span class="pulse"></span><span>پنل محلی شما فعال است · اطلاعات روی همین سیستم ذخیره می‌شود</span></div>
+      </div>
+      <div class="top-actions">
+        <input id="excelFile" type="file" accept=".xlsx" class="hidden">
+        <button class="btn btn-ghost" id="uploadBtn">↑ بارگذاری فایل Excel</button>
+        <a class="btn btn-light" href="/api/template">↓ دریافت قالب Excel</a>
+      </div>
+    </header>
+
+    <div class="section-head">
+      <div><h2>نمای کلی</h2><p>آخرین وضعیت اجرای بررسی قیمت‌ها</p></div>
+      <span id="lastRun" style="font-size:10px;color:var(--muted)">هنوز اجرایی ثبت نشده است</span>
+    </div>
+    <section class="metrics" aria-label="آمار کلی">
+      <article class="metric"><div class="metric-top"><span>تعداد کالاها</span><span class="metric-icon">▤</span></div><div class="metric-value" id="metricTotal">۰</div></article>
+      <article class="metric"><div class="metric-top"><span>قیمت‌های پیدا شده</span><span class="metric-icon">✓</span></div><div class="metric-value" id="metricSuccess">۰</div></article>
+      <article class="metric"><div class="metric-top"><span>ناموجود / خطا</span><span class="metric-icon">!</span></div><div class="metric-value" id="metricIssues">۰</div></article>
+      <article class="metric"><div class="metric-top"><span>جمع کل سبد</span><span class="metric-icon">◈</span></div><div class="metric-value" id="metricGrand">۰ <small>ریال</small></div></article>
+    </section>
+
+    <div class="section-head"><div><h2>فضای کاری</h2><p>فهرست محصولات را ویرایش کنید و پایش قیمت را اجرا کنید</p></div></div>
+    <section class="workspace">
+      <article class="panel">
+        <div class="panel-head">
+          <div><h3 class="panel-title">فهرست محصولات و نتایج</h3><div class="panel-hint" id="tableHint">فایل database.xlsx · ستون‌های Supplier و Quantity الزامی هستند</div></div>
+          <div class="table-tools">
+            <button class="btn btn-outline btn-sm" id="addRowBtn">＋ افزودن کالا</button>
+            <button class="btn btn-primary btn-sm" id="saveBtn">ذخیره تغییرات</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody"><tr><td class="empty">در حال دریافت اطلاعات...</td></tr></tbody>
+          </table>
+        </div>
+      </article>
+
+      <aside class="side-stack">
+        <section class="panel">
+          <div class="panel-head"><div><h3 class="panel-title">اجرای پایش قیمت</h3><div class="panel-hint">تنظیمات پردازش و نمایش وضعیت زنده</div></div></div>
+          <div class="run-body">
+            <div class="run-fields">
+              <div class="field"><label for="workers">تعداد پردازش هم‌زمان</label><input type="number" id="workers" min="1" max="64" value="10"></div>
+              <div class="field"><label for="timeout">مهلت پاسخ (ثانیه)</label><input type="number" id="timeout" min="1" max="120" value="15"></div>
+            </div>
+            <button class="btn btn-primary run-button" id="runBtn">▶ شروع بررسی قیمت‌ها</button>
+            <div class="progress-area">
+              <div class="progress-label"><span id="progressText">آمادهٔ شروع</span><strong id="progressPercent">۰٪</strong></div>
+              <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+              <p class="run-message" id="runMessage">بعد از شروع، وضعیت هر کالا و نتیجهٔ پردازش در همین صفحه نمایش داده می‌شود.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head"><div><h3 class="panel-title">دریافت خروجی‌ها</h3><div class="panel-hint">فایل‌های تولیدشده توسط برنامه</div></div></div>
+          <div class="downloads">
+            <a class="download-link" href="/api/download/database"><span>فهرست ورودی کالاها</span><span>↓</span></a>
+            <a class="download-link" href="/api/download/output"><span>گزارش آخرین بررسی</span><span>↓</span></a>
+            <a class="download-link" href="/api/download/history"><span>تاریخچه تغییر قیمت</span><span>↓</span></a>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head"><div><h3 class="panel-title">روند جمع کل سبد</h3><div class="panel-hint">بر اساس اجراهای ثبت‌شده</div></div></div>
+          <div class="history-body">
+            <svg class="chart" id="historyChart" viewBox="0 0 320 116" role="img" aria-label="نمودار تغییرات جمع کل سبد"></svg>
+            <div class="chart-note" id="chartNote">هنوز داده‌ای برای نمایش وجود ندارد</div>
+            <div class="history-list" id="historyList"></div>
+          </div>
+        </section>
+      </aside>
+    </section>
+    <footer class="footer">ناظر قیمت قطعات · رابط HTML محلی · پردازش و ذخیره‌سازی روی سیستم شما</footer>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const state = { columns: ['Supplier', 'Quantity'], rows: [], results: [], busy: false };
+    const $ = (id) => document.getElementById(id);
+    const fa = (value) => new Intl.NumberFormat('fa-IR').format(Number(value || 0));
+    const money = (value) => value === null || value === undefined || value === '' ? '—' : fa(value);
+    const esc = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    let toastTimer;
+    function toast(message, isError = false) {
+      const node = $('toast'); node.textContent = message; node.className = 'toast show' + (isError ? ' error' : '');
+      clearTimeout(toastTimer); toastTimer = setTimeout(() => node.classList.remove('show'), 3200);
+    }
+    async function request(url, options = {}) {
+      const response = await fetch(url, options);
+      const type = response.headers.get('content-type') || '';
+      const payload = type.includes('application/json') ? await response.json() : null;
+      if (!response.ok) throw new Error(payload?.detail || payload?.message || `خطای ${response.status}`);
+      return payload;
+    }
+    function renderMetrics(summary = null) {
+      $('metricTotal').textContent = fa(summary?.total_records ?? state.rows.length);
+      $('metricSuccess').textContent = fa(summary?.successful ?? state.results.filter(x => x?.status === 'OK').length);
+      const issues = summary ? summary.not_found + summary.errors : state.results.filter(x => x && ['NO','ERROR'].includes(x.status)).length;
+      $('metricIssues').textContent = fa(issues);
+      $('metricGrand').innerHTML = `${fa(summary?.grand_total ?? 0)} <small>ریال</small>`;
+    }
+    function renderTable() {
+      const extras = state.columns.filter(c => !['Supplier','Quantity'].includes(c));
+      const headers = ['ردیف', 'آدرس فروشگاه / قیمت', 'تعداد', ...extras, 'وضعیت', 'قیمت واحد (ریال)', 'قیمت کل (ریال)', ''];
+      $('tableHead').innerHTML = `<tr>${headers.map(h => `<th>${esc(h)}</th>`).join('')}</tr>`;
+      if (!state.rows.length) {
+        $('tableBody').innerHTML = `<tr><td colspan="${headers.length}" class="empty">هنوز کالایی ثبت نشده است. از «افزودن کالا» یا بارگذاری Excel استفاده کنید.</td></tr>`;
+        $('tableHint').textContent = 'برای هر ردیف، آدرس محصول یا قیمت دستی (عدد) را وارد کنید.';
+        return;
+      }
+      $('tableHint').textContent = `${fa(state.rows.length)} کالا · فایل database.xlsx`;
+      $('tableBody').innerHTML = state.rows.map((row, index) => {
+        const result = state.results[index] || {};
+        const status = result.status || '—';
+        const statusText = ({OK:'موفق',NO:'پیدا نشد',ERROR:'خطا',PENDING:'در انتظار'})[status] || status;
+        const inputs = (column) => {
+          const cls = column === 'Supplier' ? 'supplier' : column === 'Quantity' ? 'quantity' : '';
+          return `<input class="cell-input ${cls}" data-row="${index}" data-col="${esc(column)}" value="${esc(row[column] ?? '')}" ${state.busy ? 'disabled' : ''} aria-label="${esc(column)} ردیف ${index+1}">`;
+        };
+        return `<tr>
+          <td class="num">${fa(index + 1)}</td>
+          <td>${inputs('Supplier')}</td>
+          <td>${inputs('Quantity')}</td>
+          ${extras.map(column => `<td>${inputs(column)}</td>`).join('')}
+          <td><span class="status-pill status-${esc(status)}">${esc(statusText)}</span></td>
+          <td class="num">${money(result.price)}</td>
+          <td class="num">${money(result.total_price)}</td>
+          <td><button class="delete-row" data-delete="${index}" title="حذف ردیف" ${state.busy ? 'disabled' : ''}>×</button></td>
+        </tr>`;
+      }).join('');
+    }
+    async function loadData() {
+      const [data, previous] = await Promise.all([request('/api/data'), request('/api/last-results')]);
+      state.columns = data.columns; state.rows = data.rows; state.results = previous.rows || [];
+      renderTable(); renderMetrics(previous.summary || null);
+    }
+    async function saveData(showToast = true) {
+      const data = await request('/api/data', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({columns: state.columns, rows: state.rows}) });
+      if (showToast) toast(`اطلاعات ${fa(data.count)} کالا ذخیره شد.`);
+      return data;
+    }
+    $('tableBody').addEventListener('input', (event) => {
+      const input = event.target.closest('[data-row][data-col]');
+      if (!input) return;
+      const row = Number(input.dataset.row); const column = input.dataset.col;
+      if (state.rows[row]) state.rows[row][column] = input.value;
+    });
+    $('tableBody').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-delete]');
+      if (!button || state.busy) return;
+      const index = Number(button.dataset.delete);
+      state.rows.splice(index, 1); state.results.splice(index, 1);
+      renderTable(); renderMetrics();
+    });
+    $('addRowBtn').addEventListener('click', () => {
+      if (state.busy) return;
+      const row = Object.fromEntries(state.columns.map(column => [column, column === 'Quantity' ? 1 : '']));
+      state.rows.push(row); state.results.push(null); renderTable(); renderMetrics();
+      $('tableWrap')?.scrollTo?.({top: 999999, behavior: 'smooth'});
+      const inputs = $('tableBody').querySelectorAll('input[data-col="Supplier"]'); inputs[inputs.length - 1]?.focus();
+    });
+    $('saveBtn').addEventListener('click', async () => {
+      try { $('saveBtn').disabled = true; await saveData(); }
+      catch (error) { toast(error.message, true); }
+      finally { $('saveBtn').disabled = state.busy; }
+    });
+    $('uploadBtn').addEventListener('click', () => $('excelFile').click());
+    $('excelFile').addEventListener('change', async (event) => {
+      const file = event.target.files[0]; if (!file) return;
+      const form = new FormData(); form.append('file', file);
+      try {
+        const data = await request('/api/upload', {method:'POST', body:form});
+        state.columns = data.columns; state.rows = data.rows; state.results = [];
+        renderTable(); renderMetrics(); toast(`${fa(data.count)} ردیف بارگذاری شد.`);
+      } catch (error) { toast(error.message, true); }
+      finally { event.target.value = ''; }
+    });
+    function setBusy(busy) {
+      state.busy = busy; $('runBtn').disabled = busy; $('saveBtn').disabled = busy; $('addRowBtn').disabled = busy;
+      $('runBtn').textContent = busy ? 'در حال بررسی…' : '▶ شروع بررسی قیمت‌ها';
+      renderTable();
+    }
+    function renderStatus(data) {
+      const pct = Math.max(0, Math.min(100, Number(data.progress || 0)));
+      $('progressFill').style.width = `${pct}%`;
+      $('progressPercent').textContent = `${fa(pct)}٪`;
+      $('progressText').textContent = data.total ? `${fa(data.completed)} از ${fa(data.total)} کالا` : 'آمادهٔ شروع';
+      $('runMessage').textContent = data.error || data.message || '';
+      $('runMessage').classList.toggle('error', data.status === 'error');
+      if (data.rows?.length) {
+        state.results = data.rows.map(row => ({status:row.status, price:row.price, total_price:row.total_price, error:row.error}));
+        // Keep edited supplier columns as returned by the running snapshot.
+        data.rows.forEach((result, index) => {
+          if (state.rows[index]) {
+            for (const column of state.columns) {
+              if (result[column] !== undefined) state.rows[index][column] = result[column];
+            }
+          }
+        });
+        renderTable();
+      }
+      if (data.summary) {
+        renderMetrics(data.summary);
+        $('lastRun').textContent = 'آخرین اجرا با موفقیت تکمیل شد';
+      } else if (data.status === 'running') {
+        renderMetrics();
+      }
+      setBusy(data.status === 'running');
+    }
+    let pollTimer = null;
+    async function pollStatus() {
+      try {
+        const data = await request('/api/status'); renderStatus(data);
+        if (data.status === 'running') return true;
+        clearInterval(pollTimer); pollTimer = null;
+        if (data.status === 'completed') { await loadHistory(); toast('بررسی قیمت‌ها تمام شد. گزارش Excel آمادهٔ دانلود است.'); }
+        if (data.status === 'error') toast(data.error || 'خطایی در اجرای بررسی رخ داد.', true);
+        return false;
+      } catch (error) { clearInterval(pollTimer); pollTimer = null; toast(error.message, true); return false; }
+    }
+    $('runBtn').addEventListener('click', async () => {
+      try {
+        await saveData(false);
+        const workers = Number($('workers').value); const timeout = Number($('timeout').value);
+        if (!Number.isInteger(workers) || workers < 1 || workers > 64) throw new Error('تعداد پردازش هم‌زمان باید بین ۱ تا ۶۴ باشد.');
+        if (!Number.isFinite(timeout) || timeout <= 0 || timeout > 120) throw new Error('مهلت پاسخ باید بیشتر از صفر و حداکثر ۱۲۰ ثانیه باشد.');
+        await request('/api/run', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({workers, timeout})});
+        setBusy(true); $('lastRun').textContent = 'بررسی در حال اجراست';
+        const stillRunning = await pollStatus(); if (stillRunning) pollTimer = setInterval(pollStatus, 1200);
+      } catch (error) { toast(error.message, true); }
+    });
+    function renderHistoryChart(rows) {
+      const svg = $('historyChart');
+      const points = rows.slice().reverse().map(row => Number(row['Grand Total'])).filter(Number.isFinite);
+      if (!points.length) { svg.innerHTML = ''; $('chartNote').textContent = 'هنوز داده‌ای برای نمایش وجود ندارد'; return; }
+      if (points.length === 1) { svg.innerHTML = `<circle cx="160" cy="58" r="5" fill="#536dfe"/>`; $('chartNote').textContent = `آخرین جمع کل: ${fa(points[0])} ریال`; return; }
+      const min = Math.min(...points), max = Math.max(...points), range = max - min || 1;
+      const coords = points.map((value, index) => `${12 + index * (296 / (points.length - 1))},${98 - ((value - min) / range) * 78}`).join(' ');
+      svg.innerHTML = `<defs><linearGradient id="areaFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#536dfe" stop-opacity=".20"/><stop offset="100%" stop-color="#536dfe" stop-opacity="0"/></linearGradient></defs><polygon points="12,108 ${coords} 308,108" fill="url(#areaFill)"/><polyline points="${coords}" fill="none" stroke="#536dfe" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${coords.split(' ').map(pair => {const [x,y]=pair.split(',');return `<circle cx="${x}" cy="${y}" r="3.4" fill="#fff" stroke="#536dfe" stroke-width="2"/>`;}).join('')}`;
+      $('chartNote').textContent = `${fa(points.length)} اجرای ثبت‌شده · ${fa(points[points.length-1])} ریال در آخرین اجرا`;
+    }
+    async function loadHistory() {
+      try {
+        const data = await request('/api/history'); renderHistoryChart(data.rows || []);
+        if (data.rows?.length) $('lastRun').textContent = `آخرین ثبت: ${data.rows[0]['Date / Time'] || '—'}`;
+        $('historyList').innerHTML = (data.rows || []).slice(0,8).map(row => `<div class="history-row"><span>${esc(row['Date / Time'] || '')}</span><strong>${fa(row['Grand Total'])} ریال</strong></div>`).join('');
+      } catch { /* History is optional until the first run. */ }
+    }
+    async function init() {
+      try { await loadData(); await loadHistory(); await pollStatus(); }
+      catch (error) { toast(error.message, true); }
+    }
+    init();
+  </script>
+</body>
+</html>

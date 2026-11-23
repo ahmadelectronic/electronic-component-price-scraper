@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Any
+from typing import Callable
 
 import pandas as pd
 
@@ -12,6 +12,8 @@ from .config import ScraperConfig
 from .models import RunSummary, ScrapeResult
 from .report import open_file, write_report
 from .scraper import PriceScraper
+
+ProgressCallback = Callable[[int, int, int, ScrapeResult], None]
 
 
 class PriceMonitor:
@@ -21,7 +23,7 @@ class PriceMonitor:
         self.config = config or ScraperConfig()
         self.scraper = PriceScraper(self.config)
 
-    def run(self) -> RunSummary:
+    def run(self, progress_callback: ProgressCallback | None = None) -> RunSummary:
         dataframe = pd.read_excel(self.config.input_file)
         dataframe.columns = dataframe.columns.map(lambda name: str(name).strip())
         required = {"Supplier", "Quantity"}
@@ -48,12 +50,16 @@ class PriceMonitor:
                 except ImportError:
                     pass
 
+            completed_count = 0
             for future in completed:
                 index = futures[future]
                 try:
                     results[index] = future.result()
                 except Exception as exc:  # Defensive: retain row order even on an unexpected worker failure.
                     results[index] = ScrapeResult(status="ERROR", error=str(exc), content=f"ERROR: {exc}")
+                completed_count += 1
+                if progress_callback is not None:
+                    progress_callback(index, completed_count, len(futures), results[index])
 
         final_results = [item or ScrapeResult(status="ERROR", error="No result") for item in results]
         grand_total = write_report(
