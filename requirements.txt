@@ -1,17 +1,5 @@
-<<<<<<< HEAD
-requests
-beautifulsoup4
-lxml
-sqlalchemy
-pandas
-openpyxl
-python-dotenv
-playwright
-tqdm
-=======
 requests>=2.31
 beautifulsoup4>=4.12
 pandas>=2.0
 openpyxl>=3.1
 tqdm>=4.65
->>>>>>> 4a315ac (change structure)
