@@ -1,4 +1,4 @@
-"""Start the browser-based HTML dashboard."""
+"""Start the local browser-based price-monitor dashboard."""
 
 from component_price_scraper.web import run_server
 

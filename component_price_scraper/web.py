@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import logging
 import threading
+import webbrowser
 from io import BytesIO
 from pathlib import Path
 from typing import Any
+from threading import Timer
 
 import pandas as pd
 from fastapi import FastAPI, File, HTTPException, UploadFile
@@ -17,7 +19,7 @@ from . import PriceMonitor, ScraperConfig
 
 logger = logging.getLogger(__name__)
 
-# Files remain in the directory from which the user launches main.py.
+# Keep the workbook and reports in the project launch directory.
 PROJECT_DIR = Path.cwd().resolve()
 DATABASE_FILE = PROJECT_DIR / "database.xlsx"
 OUTPUT_FILE = PROJECT_DIR / "output.xlsx"
@@ -25,6 +27,7 @@ HISTORY_FILE = PROJECT_DIR / "price_history.xlsx"
 TEMPLATE_FILE = Path(__file__).parent / "templates" / "index.html"
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 MAX_ROWS = 10_000
+
 
 app = FastAPI(
     title="Electronic Component Price Monitor",
@@ -340,14 +343,18 @@ async def download_template() -> StreamingResponse:
     )
 
 
-def run_server(host: str = "127.0.0.1", port: int = 8000) -> None:
-    """Start the local web UI. Bind to loopback by default for local-only access."""
+def run_server(host: str = "127.0.0.1", port: int = 8000, *, open_browser: bool = False) -> None:
+    """Start the local dashboard; optionally open it in the default browser."""
     try:
         import uvicorn
     except ImportError as exc:  # pragma: no cover - depends on optional web extras
         raise RuntimeError(
-            "برای اجرای رابط وب، وابستگی‌ها را نصب کنید: "
+            "Web dashboard dependencies are missing. Install them with: "
             "python -m pip install -r requirements.txt"
         ) from exc
-    print(f"\nرابط کاربری در آدرس http://{host}:{port} در دسترس است.\nبرای توقف، Ctrl+C را بزنید.\n")
+
+    address = f"http://{host}:{port}"
+    print(f"\nDashboard available at {address}\nPress Ctrl+C to stop.\n", flush=True)
+    if open_browser:
+        Timer(1.2, lambda: webbrowser.open(address, new=2)).start()
     uvicorn.run(app, host=host, port=port, log_level="info")
